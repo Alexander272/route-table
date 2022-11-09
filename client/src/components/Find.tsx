@@ -1,12 +1,4 @@
-import {
-    Box,
-    FormControl,
-    IconButton,
-    InputAdornment,
-    InputBase,
-    OutlinedInput,
-    Paper,
-} from "@mui/material"
+import { Box, IconButton, InputBase, Paper } from "@mui/material"
 import React, { FC } from "react"
 
 type Props = {}
@@ -14,19 +6,6 @@ type Props = {}
 export const Find: FC<Props> = () => {
     return (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
-            {/* <OutlinedInput
-                type='search'
-                size='small'
-                endAdornment={
-                    <InputAdornment position='end'>
-                        <IconButton type='button' sx={{ p: "6px" }} aria-label='search'>
-                            &#128269;
-                        </IconButton>
-                    </InputAdornment>
-                }
-                placeholder='Введите номер заказа'
-                fullWidth
-            /> */}
             <Paper
                 component='form'
                 sx={{ p: "2px 4px", display: "flex", alignItems: "center", width: 600 }}

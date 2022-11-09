@@ -119,41 +119,6 @@ export default function Position() {
                     <TextField id='count' label='Количество' variant='outlined' />
                     <Button variant='contained'>Сделано</Button>
                 </Stack>
-                {/* <Table size='small' sx={{ minWidth: 350 }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Наименование операции</TableCell>
-                                <TableCell>Состояние</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {steps.map((row, i) => (
-                                <TableRow key={row.id}>
-                                    <TableCell component='th' scope='row'>
-                                        {row.title}
-                                    </TableCell>
-                                    <TableCell>
-                                         <Switch
-                                            // checked={checked}
-                                            // onChange={handleChange}
-                                            inputProps={{ "aria-label": "controlled" }}
-                                        /> 
-                                        <FormControlLabel
-                                            value={"step" + operations[i].id}
-                                            control={
-                                                <Switch
-                                                    color='primary'
-                                                    checked={operations[i].done}
-                                                />
-                                            }
-                                            label={operations[i].done ? "Выполнено" : ""}
-                                            labelPlacement='end'
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table> */}
             </Paper>
         </Container>
     )

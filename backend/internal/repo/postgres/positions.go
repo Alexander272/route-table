@@ -19,19 +19,20 @@ func NewPositionRepo(db *sqlx.DB) *PositionRepo {
 }
 
 func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
-	query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s", PositionsTable)
+	query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
 
-	if err := r.db.Select(&positions, query); err != nil {
+	if err := r.db.Select(&positions, query, orderId); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}
 	return positions, nil
 }
 
 func (r *PositionRepo) Get(ctx context.Context, id uuid.UUID) (position models.Position, err error) {
-	query := fmt.Sprintf(`SELECT %s.id, position, count, title, ring, deadline, connected, %s.done, number FROM %s
-		INNER JOIN %s ON order_id=%s.id`, PositionsTable, PositionsTable, PositionsTable, OrdersTable, OrdersTable)
+	query := fmt.Sprintf(`SELECT %s.id, position, count, title, ring, %s.deadline, connected, %s.done, number FROM %s
+		INNER JOIN %s ON order_id=%s.id WHERE %s.id=$1`,
+		PositionsTable, PositionsTable, PositionsTable, PositionsTable, OrdersTable, OrdersTable, PositionsTable)
 
-	if err := r.db.Get(&position, query); err != nil {
+	if err := r.db.Get(&position, query, id); err != nil {
 		return position, fmt.Errorf("failed to execute query. error: %w", err)
 	}
 	return position, nil
@@ -59,8 +60,7 @@ func (r *PositionRepo) CreateFew(ctx context.Context, positions []models.Positio
 	c := 8
 	for i, p := range positions {
 		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5, i*c+6, i*c+7, i*c+8))
-		id := uuid.New()
-		args = append(args, id, p.OrderId, p.Position, p.Count, p.Title, p.Ring, p.Deadline, p.Connected)
+		args = append(args, p.Id, p.OrderId, p.Position, p.Count, p.Title, p.Ring, p.Deadline, p.Connected)
 	}
 	query += strings.Join(values, ", ")
 

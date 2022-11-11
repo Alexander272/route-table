@@ -18,6 +18,8 @@ type RootOperation interface {
 }
 
 type Order interface {
+	Get(context.Context, uuid.UUID) (models.OrderWithPositions, error)
+	Find(context.Context, string) ([]models.FindedOrder, error)
 	Create(context.Context, models.OrderDTO) (uuid.UUID, error)
 	Update(context.Context, models.OrderDTO) error
 	Delete(context.Context, models.OrderDTO) error
@@ -33,6 +35,7 @@ type Position interface {
 }
 
 type Operation interface {
+	Get(context.Context, uuid.UUID) ([]models.Operation, error)
 	Create(context.Context, models.OperationDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error

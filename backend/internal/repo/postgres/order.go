@@ -17,13 +17,29 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 	return &OrderRepo{db: db}
 }
 
-// func (r *OrderRepo) Get(ctx context.Context)
+func (r *OrderRepo) Get(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error) {
+	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE id=$1", OrdersTable)
+
+	if err := r.db.Get(&order, query, id); err != nil {
+		return models.OrderWithPositions{}, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return order, nil
+}
+
+func (r *OrderRepo) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
+	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE number LIKE $1 LIMIT 5", OrdersTable)
+
+	if err := r.db.Select(&orders, query, "%"+number+"%"); err != nil {
+		return nil, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return orders, nil
+}
 
 func (r *OrderRepo) Create(ctx context.Context, order models.OrderDTO) (id uuid.UUID, err error) {
-	query := fmt.Sprintf("INSERT INTO %s (id, number, done, deadline) VALUES ($1, $2, $3, $4) RETURNING id", OrdersTable)
+	query := fmt.Sprintf("INSERT INTO %s (id, number, done, deadline, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", OrdersTable)
 	id = uuid.New()
 
-	_, err = r.db.Exec(query, id, order.Number, order.Done, order.Deadline)
+	_, err = r.db.Exec(query, id, order.Number, order.Done, order.Deadline, order.Date)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}

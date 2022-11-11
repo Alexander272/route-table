@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) InitRootOperationRoutes(api *gin.RouterGroup) {
-	root := api.Group("/root-operation")
+	root := api.Group("/root-operations")
 	{
 		root.GET("/", h.getRootOperation)
 		root.POST("/", h.createRootOperation)
@@ -57,7 +57,12 @@ func (h *Handler) updateRootOperation(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "invalid data send")
 		return
 	}
-	dto.Id = uuid.MustParse(id)
+	var err error
+	dto.Id, err = uuid.Parse(id)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
+		return
+	}
 
 	if err := h.services.RootOperation.Update(c, dto); err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
@@ -73,7 +78,14 @@ func (h *Handler) deleteRootOperation(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusBadRequest, "empty id", "empty id param")
 		return
 	}
-	dto := models.RootOperationDTO{Id: uuid.MustParse(id)}
+
+	Id, err := uuid.Parse(id)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
+		return
+	}
+
+	dto := models.RootOperationDTO{Id: Id}
 
 	if err := h.services.RootOperation.Update(c, dto); err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")

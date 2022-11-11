@@ -18,6 +18,16 @@ func NewOperationRepo(db *sqlx.DB) *OperationRepo {
 	return &OperationRepo{db: db}
 }
 
+func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID) (operatios []models.Operation, err error) {
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder FROM %s INNER JOIN %s ON operation_id=%s.id 
+		WHERE position_id=$1`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
+
+	if err := r.db.Select(&operatios, query, positionId); err != nil {
+		return operatios, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return operatios, nil
+}
+
 func (r *OperationRepo) Create(ctx context.Context, operation models.OperationDTO) (id uuid.UUID, err error) {
 	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, position_id, done, remainder) VALUES ($1, $2, $3, $4, $5)", OperationsTable)
 	id = uuid.New()
@@ -39,8 +49,7 @@ func (r *OperationRepo) CreateFew(ctx context.Context, operations []models.Opera
 	c := 5
 	for i, p := range operations {
 		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5))
-		id := uuid.New()
-		args = append(args, id, p.OperationId, p.PositionId, p.Done, p.Remainder)
+		args = append(args, p.Id, p.OperationId, p.PositionId, p.Done, p.Remainder)
 	}
 	query += strings.Join(values, ", ")
 

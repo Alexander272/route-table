@@ -14,15 +14,16 @@ type PositionForOrder struct {
 }
 
 type Position struct {
-	Id        uuid.UUID `db:"id"`
-	Order     int       `db:"number"`
-	Position  int       `db:"position"`
-	Count     int       `db:"count"`
-	Title     string    `db:"title"`
-	Ring      string    `db:"ring"`
-	Deadline  string    `db:"deadline"`
-	Connected uuid.UUID `db:"connected"`
-	Done      bool      `db:"done"`
+	Id        uuid.UUID   `db:"id" json:"id"`
+	Order     string      `db:"number" json:"order"`
+	Position  int         `db:"position" json:"position"`
+	Count     int         `db:"count" json:"count"`
+	Title     string      `db:"title" json:"title"`
+	Ring      string      `db:"ring" json:"ring"`
+	Deadline  string      `db:"deadline" json:"deadline"`
+	Connected uuid.UUID   `db:"connected" json:"connected,omitempty"`
+	Done      bool        `db:"done" json:"done"`
+	Operation []Operation `json:"operation"`
 }
 
 type PositionDTO struct {

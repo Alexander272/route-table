@@ -19,7 +19,14 @@ func NewPositionRepo(db *sqlx.DB) *PositionRepo {
 }
 
 func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
-	query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
+	query := fmt.Sprintf(`SELECT id, position, count, title, ring, deadline, connected, done,
+		(SELECT coalesce(title, '') FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=true ORDER BY title DESC LIMIT 1) as last_operation,
+		(SELECT concat_ws(', осталось ', title, remainder::text) FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=false AND
+		remainder<=%s.count ORDER BY title LIMIT 1) as cur_operation FROM %s WHERE order_id=$1 ORDER BY done, position`,
+		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable,
+		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable, PositionsTable,
+		PositionsTable)
+	// query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
 
 	if err := r.db.Select(&positions, query, orderId); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)

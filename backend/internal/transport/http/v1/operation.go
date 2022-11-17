@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/Alexander272/route-table/internal/models/response"
@@ -29,15 +30,19 @@ func (h *Handler) completeOperation(c *gin.Context) {
 		return
 	}
 
-	var dto models.CompleteOperation
+	var dto models.CompletePosition
 	if err := c.BindJSON(&dto); err != nil {
 		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "invalid data send")
 		return
 	}
 	dto.Id = uuId
 
-	if err := h.services.Operation.Update(c, dto); err != nil {
-		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
+	if err := h.services.Position.Update(c, dto); err != nil {
+		if strings.Contains(err.Error(), "connected operation not completed") {
+			response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "connected operation not completed")
+			return
+		}
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}
 	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Operation updated successfully"})

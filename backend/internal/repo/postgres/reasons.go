@@ -21,7 +21,7 @@ func (r *ReasonRepo) Create(ctx context.Context, reason models.ReasonDTO) (id uu
 	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, date, value) VALUES ($1, $2, $3, $4)", ReasonsTable)
 	id = uuid.New()
 
-	_, err = r.db.Exec(query, reason.OperationId, reason.Date, reason.Value)
+	_, err = r.db.Exec(query, id, reason.OperationId, reason.Date, reason.Value)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}

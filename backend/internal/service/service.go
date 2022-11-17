@@ -43,6 +43,7 @@ type Operation interface {
 type Position interface {
 	Get(context.Context, uuid.UUID) (models.Position, error)
 	CreateFew(context.Context, map[string]uuid.UUID, [][]string) error
+	Update(context.Context, models.CompletePosition) error
 }
 
 type Order interface {

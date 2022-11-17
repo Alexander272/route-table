@@ -3,10 +3,11 @@ package models
 import "github.com/google/uuid"
 
 type Operation struct {
-	Id        uuid.UUID `db:"id" json:"id"`
-	Title     string    `db:"title" json:"title"`
-	Done      bool      `db:"done" json:"done"`
-	Remainder int       `db:"remainder" json:"remainder"`
+	Id         uuid.UUID `db:"id" json:"id"`
+	Title      string    `db:"title" json:"title"`
+	Done       bool      `db:"done" json:"done"`
+	Remainder  int       `db:"remainder" json:"remainder"`
+	StepNumber int       `db:"step_number" json:"step_number,omitempty"`
 }
 
 type OperationDTO struct {

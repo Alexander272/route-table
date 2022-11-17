@@ -117,3 +117,46 @@ func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID) (p
 
 	return positions, nil
 }
+
+func (s *PositionService) Complete(ctx context.Context, position models.PositionDTO) error {
+	if err := s.repo.Update(ctx, position); err != nil {
+		return fmt.Errorf("failed to complete position. error: %w", err)
+	}
+	return nil
+}
+
+func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
+	if position.IsFinish {
+		op1, op2, err := s.operation.Check(ctx, position.Id, position.Connected, position.Operation.Done, position.Operation.Remainder)
+		if err != nil {
+			return err
+		}
+		if err := s.operation.Complete(ctx, op1); err != nil {
+			return err
+		}
+		if err := s.operation.Complete(ctx, op2); err != nil {
+			return err
+		}
+
+		if op1.Done {
+			if err := s.Complete(ctx, models.PositionDTO{Id: position.Id, Done: op1.Done}); err != nil {
+				return err
+			}
+			if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done}); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	if err := s.operation.Update(ctx, position.Operation); err != nil {
+		return err
+	}
+
+	if err := s.operation.DeleteSkipped(ctx, position.Id, position.Operation.Id, position.Count); err != nil {
+		return err
+	}
+
+	return nil
+}

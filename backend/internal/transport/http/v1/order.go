@@ -65,7 +65,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}
-	c.JSON(http.StatusCreated, response.DataResponse{Data: order})
+	c.JSON(http.StatusOK, response.DataResponse{Data: order})
 }
 
 func (h *Handler) findOrders(c *gin.Context) {
@@ -80,5 +80,5 @@ func (h *Handler) findOrders(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}
-	c.JSON(http.StatusCreated, response.DataResponse{Data: orders, Count: len(orders)})
+	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
 }

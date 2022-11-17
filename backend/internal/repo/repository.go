@@ -40,6 +40,7 @@ type Operation interface {
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error
 	Delete(context.Context, models.OperationDTO) error
+	DeleteFew(context.Context, []uuid.UUID) error
 }
 
 type Reason interface {

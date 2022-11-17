@@ -19,8 +19,8 @@ func NewOperationRepo(db *sqlx.DB) *OperationRepo {
 }
 
 func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID) (operatios []models.Operation, err error) {
-	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder FROM %s INNER JOIN %s ON operation_id=%s.id 
-		WHERE position_id=$1`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
+		WHERE position_id=$1 ORDER BY step_number`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
 
 	if err := r.db.Select(&operatios, query, positionId); err != nil {
 		return operatios, fmt.Errorf("failed to execute query. error: %w", err)
@@ -75,6 +75,25 @@ func (r *OperationRepo) Delete(ctx context.Context, operation models.OperationDT
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", OperationsTable)
 
 	if _, err := r.db.Exec(query, operation.Id); err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return nil
+}
+
+func (r *OperationRepo) DeleteFew(ctx context.Context, fewId []uuid.UUID) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id IN (", OperationsTable)
+	args := make([]interface{}, 0)
+	values := make([]string, 0, len(fewId))
+
+	for i, p := range fewId {
+		values = append(values, fmt.Sprintf("$%d", i+1))
+		args = append(args, p)
+	}
+	query += strings.Join(values, ", ")
+	query += ")"
+
+	_, err := r.db.Exec(query, args...)
+	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
 	return nil

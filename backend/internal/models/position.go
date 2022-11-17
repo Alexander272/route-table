@@ -3,14 +3,16 @@ package models
 import "github.com/google/uuid"
 
 type PositionForOrder struct {
-	Id        uuid.UUID `db:"id"`
-	Position  int       `db:"position"`
-	Count     int       `db:"count"`
-	Title     string    `db:"title"`
-	Ring      string    `db:"ring"`
-	Deadline  string    `db:"deadline"`
-	Connected uuid.UUID `db:"connected"`
-	Done      bool      `db:"done"`
+	Id            uuid.UUID `db:"id" json:"id"`
+	Position      int       `db:"position" json:"position"`
+	Count         int       `db:"count" json:"count"`
+	Title         string    `db:"title" json:"title"`
+	Ring          string    `db:"ring" json:"ring"`
+	Deadline      string    `db:"deadline" json:"deadline"`
+	Connected     uuid.UUID `db:"connected" json:"connected"`
+	Done          bool      `db:"done" json:"done"`
+	LastOperation *string   `db:"last_operation" json:"lastOperation"`
+	CurOperation  *string   `db:"cur_operation" json:"curOperation"`
 }
 
 type Position struct {
@@ -23,7 +25,7 @@ type Position struct {
 	Deadline  string      `db:"deadline" json:"deadline"`
 	Connected uuid.UUID   `db:"connected" json:"connected,omitempty"`
 	Done      bool        `db:"done" json:"done"`
-	Operation []Operation `json:"operation"`
+	Operation []Operation `json:"operations"`
 }
 
 type PositionDTO struct {
@@ -36,4 +38,12 @@ type PositionDTO struct {
 	Deadline  string    `json:"deadline"`
 	Connected uuid.UUID `json:"connected"`
 	Done      bool      `json:"done"`
+}
+
+type CompletePosition struct {
+	Id        uuid.UUID         `json:"positionId"`
+	Count     int               `json:"count"`
+	IsFinish  bool              `json:"isFinish"`
+	Connected uuid.UUID         `json:"connected"`
+	Operation CompleteOperation `json:"operation"`
 }

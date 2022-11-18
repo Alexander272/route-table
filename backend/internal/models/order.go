@@ -13,7 +13,14 @@ type Order struct {
 	Number   string    `db:"number" json:"number"`
 	Done     bool      `db:"done" json:"done"`
 	Date     string    `db:"date" json:"date"`
-	Deadline string    `db:"deadline" json:"deadline"`
+	Deadline string    `db:"deadline" json:"deadline,omitempty"`
+	Progress float64   `db:"progress" json:"progress,omitempty"`
+}
+
+type GroupedOrder struct {
+	Id       uuid.UUID `json:"id"`
+	Deadline string    `json:"deadline"`
+	Orders   []Order   `json:"orders"`
 }
 
 type OrderWithPositions struct {

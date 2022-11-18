@@ -109,6 +109,31 @@ func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID) (positi
 	return position, nil
 }
 
+func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (position models.PositionWithReason, err error) {
+	pos, err := s.repo.Get(ctx, positionId)
+	if err != nil {
+		return models.PositionWithReason{}, fmt.Errorf("failed to get position. error: %w", err)
+	}
+	position = models.PositionWithReason{
+		Id:        pos.Id,
+		Order:     pos.Order,
+		Position:  pos.Position,
+		Count:     pos.Count,
+		Title:     pos.Title,
+		Ring:      pos.Ring,
+		Deadline:  pos.Deadline,
+		Connected: pos.Connected,
+	}
+
+	operation, err := s.operation.GetWithReasons(ctx, positionId)
+	if err != nil {
+		return models.PositionWithReason{}, err
+	}
+	position.Operation = operation
+
+	return position, nil
+}
+
 func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
 	positions, err = s.repo.GetForOrder(ctx, orderId)
 	if err != nil {

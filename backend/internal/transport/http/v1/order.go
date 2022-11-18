@@ -13,6 +13,7 @@ func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
 	orders := api.Group("/orders")
 	{
 		orders.POST("/parse", h.ordersParse)
+		orders.GET("/", h.getOrders)
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
 	}
@@ -45,6 +46,15 @@ func (h *Handler) ordersParse(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, response.IdResponse{Message: "Order added successfully"})
+}
+
+func (h *Handler) getOrders(c *gin.Context) {
+	orders, err := h.services.Order.GetAll(c)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
 }
 
 func (h *Handler) getOrder(c *gin.Context) {

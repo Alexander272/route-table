@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/Alexander272/route-table/internal/models"
@@ -91,6 +92,57 @@ func (s *OrderService) Find(ctx context.Context, number string) (orders []models
 	orders, err = s.repo.Find(ctx, number)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find orders. error: %w", err)
+	}
+
+	return orders, nil
+}
+
+func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder, err error) {
+	o, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get orders. error: %w", err)
+	}
+
+	groupId := uuid.New()
+	orders = append(orders, models.GroupedOrder{
+		Id:       groupId,
+		Deadline: o[0].Deadline,
+		Orders: []models.Order{{
+			Id:       o[0].Id,
+			Number:   o[0].Number,
+			Done:     o[0].Done,
+			Date:     o[0].Date,
+			Progress: math.Round(o[0].Progress*10) / 10,
+		}},
+	})
+
+	for i, o := range o {
+		if i == 0 {
+			continue
+		}
+
+		if o.Deadline == orders[len(orders)-1].Deadline {
+			orders[len(orders)-1].Orders = append(orders[len(orders)-1].Orders, models.Order{
+				Id:       o.Id,
+				Number:   o.Number,
+				Done:     o.Done,
+				Date:     o.Date,
+				Progress: math.Round(o.Progress*10) / 10,
+			})
+		} else {
+			groupId := uuid.New()
+			orders = append(orders, models.GroupedOrder{
+				Id:       groupId,
+				Deadline: o.Deadline,
+				Orders: []models.Order{{
+					Id:       o.Id,
+					Number:   o.Number,
+					Done:     o.Done,
+					Date:     o.Date,
+					Progress: math.Round(o.Progress*10) / 10,
+				}},
+			})
+		}
 	}
 
 	return orders, nil

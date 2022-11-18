@@ -26,6 +26,17 @@ func (r *OrderRepo) Get(ctx context.Context, id uuid.UUID) (order models.OrderWi
 	return order, nil
 }
 
+func (r *OrderRepo) GetAll(ctx context.Context) (orders []models.Order, err error) {
+	query := fmt.Sprintf(`SELECT id, number, done, date, deadline,
+		(SELECT count(case when done = true then done end)/count(done)::real FROM %s WHERE order_id=%s.id) as progress
+		FROM %s ORDER BY done, deadline DESC`, PositionsTable, OrdersTable, OrdersTable)
+
+	if err := r.db.Select(&orders, query); err != nil {
+		return nil, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return orders, nil
+}
+
 func (r *OrderRepo) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
 	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE number LIKE $1 LIMIT 5", OrdersTable)
 

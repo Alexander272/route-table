@@ -18,14 +18,27 @@ func NewOperationRepo(db *sqlx.DB) *OperationRepo {
 	return &OperationRepo{db: db}
 }
 
-func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID) (operatios []models.Operation, err error) {
+func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
 	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
 		WHERE position_id=$1 ORDER BY step_number`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
 
-	if err := r.db.Select(&operatios, query, positionId); err != nil {
-		return operatios, fmt.Errorf("failed to execute query. error: %w", err)
+	if err := r.db.Select(&operations, query, positionId); err != nil {
+		return operations, fmt.Errorf("failed to execute query. error: %w", err)
 	}
-	return operatios, nil
+	return operations, nil
+}
+
+func (r *OperationRepo) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder,step_number, %s.id as reason_id, value, %s.date
+  		FROM %s INNER JOIN %s ON %s.operation_id=%s.id LEFT JOIN %s ON %s.id=%s.operation_id 
+		WHERE position_id=$1 ORDER BY step_number, %s.date`, OperationsTable, ReasonsTable, ReasonsTable,
+		OperationsTable, RootOperationTable, OperationsTable, RootOperationTable,
+		ReasonsTable, OperationsTable, ReasonsTable, ReasonsTable)
+
+	if err := r.db.Select(&operations, query, positionId); err != nil {
+		return operations, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return operations, nil
 }
 
 func (r *OperationRepo) Create(ctx context.Context, operation models.OperationDTO) (id uuid.UUID, err error) {

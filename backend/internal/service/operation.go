@@ -32,6 +32,56 @@ func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID) (opera
 	return operatios, nil
 }
 
+func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {
+	ops, err := s.repo.GetWithReasons(ctx, positionId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get operation with reason. error: %w", err)
+	}
+
+	for i, owr := range ops {
+		if i == 0 {
+			operations = append(operations, models.OperationWithReason{
+				Id:         owr.Id,
+				Title:      owr.Title,
+				Done:       owr.Done,
+				Remainder:  owr.Remainder,
+				StepNumber: owr.StepNumber,
+			})
+			if owr.Value != nil {
+				operations[0].Reason = []models.Reason{{
+					Id:    owr.ReasonId,
+					Value: *owr.Value,
+					Date:  *owr.Date,
+				}}
+			}
+		} else {
+			if operations[len(operations)-1].Id == owr.Id {
+				operations[len(operations)-1].Reason = append(operations[len(operations)-1].Reason, models.Reason{
+					Id:    owr.ReasonId,
+					Value: *owr.Value,
+					Date:  *owr.Date,
+				})
+			} else {
+				operations = append(operations, models.OperationWithReason{
+					Id:         owr.Id,
+					Title:      owr.Title,
+					Done:       owr.Done,
+					Remainder:  owr.Remainder,
+					StepNumber: owr.StepNumber,
+				})
+				if owr.Value != nil {
+					operations[len(operations)-1].Reason = []models.Reason{{
+						Id:    owr.ReasonId,
+						Value: *owr.Value,
+						Date:  *owr.Date,
+					}}
+				}
+			}
+		}
+	}
+	return operations, nil
+}
+
 func (s *OperationService) CreateFew(ctx context.Context, operations []models.OperationDTO) error {
 	if err := s.repo.CreateFew(ctx, operations); err != nil {
 		return fmt.Errorf("failed to create few operations. err: %w", err)

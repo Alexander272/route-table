@@ -8,3 +8,9 @@ type ReasonDTO struct {
 	Date        string    `json:"date"`
 	Value       string    `json:"value"`
 }
+
+type Reason struct {
+	Id    uuid.UUID `json:"id"`
+	Date  string    `json:"date"`
+	Value string    `json:"value"`
+}

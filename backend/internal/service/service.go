@@ -36,12 +36,14 @@ type RootOperation interface {
 
 type Operation interface {
 	Get(context.Context, uuid.UUID) ([]models.Operation, error)
+	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.CompleteOperation) error
 }
 
 type Position interface {
 	Get(context.Context, uuid.UUID) (models.Position, error)
+	GetWithReasons(context.Context, uuid.UUID) (models.PositionWithReason, error)
 	CreateFew(context.Context, map[string]uuid.UUID, [][]string) error
 	Update(context.Context, models.CompletePosition) error
 }
@@ -49,7 +51,8 @@ type Position interface {
 type Order interface {
 	Parse(context.Context, *excelize.File) error
 	Find(context.Context, string) ([]models.FindedOrder, error)
-	GetWithPositions(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error)
+	GetAll(context.Context) ([]models.GroupedOrder, error)
+	GetWithPositions(context.Context, uuid.UUID) (models.OrderWithPositions, error)
 	Create(context.Context, models.OrderDTO) (uuid.UUID, error)
 	Update(context.Context, models.OrderDTO) error
 	Delete(context.Context, models.OrderDTO) error

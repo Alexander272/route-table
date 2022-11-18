@@ -22,16 +22,28 @@ func (h *Handler) getPosition(c *gin.Context) {
 		return
 	}
 
+	reason := c.Query("reason")
+
 	uuId, err := uuid.Parse(id)
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
 		return
 	}
 
-	position, err := h.services.Position.Get(c, uuId)
-	if err != nil {
-		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
-		return
+	var position interface{}
+
+	if reason != "" {
+		position, err = h.services.Position.GetWithReasons(c, uuId)
+		if err != nil {
+			response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
+			return
+		}
+	} else {
+		position, err = h.services.Position.Get(c, uuId)
+		if err != nil {
+			response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, response.DataResponse{Data: position})

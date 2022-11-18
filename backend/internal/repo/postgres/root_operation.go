@@ -18,7 +18,7 @@ func NewRootOperationRepo(db *sqlx.DB) *RootOperationRepo {
 }
 
 func (r *RootOperationRepo) Get(ctx context.Context) (operations []models.RootOperation, err error) {
-	query := fmt.Sprintf("SELECT id, title, gasket, step_number FROM %s", RootOperationTable)
+	query := fmt.Sprintf("SELECT id, title, gasket, step_number, connected FROM %s", RootOperationTable)
 
 	if err := r.db.Select(&operations, query); err != nil {
 		return operations, fmt.Errorf("failed to execute query. error: %w", err)

@@ -17,3 +17,17 @@ export interface ISearchForm {
     search: string
     resultIndex: number
 }
+
+export interface IGroupedOrder {
+    id: string
+    deadline: string
+    orders: IOrderItem[]
+}
+
+export interface IOrderItem {
+    id: string
+    number: string
+    done: boolean
+    date: string
+    progress: number
+}

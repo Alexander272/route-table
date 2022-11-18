@@ -24,7 +24,7 @@ type Props = {
 export const Operations: FC<Props> = ({ position, operations }) => {
     const [operationIdx, setOperationIdx] = useState("0")
     const [remainder, setRemainder] = useState(0)
-    const [count, setCount] = useState(0)
+    const [count, setCount] = useState("0")
     const [reason, setReason] = useState("")
 
     const params = useParams()
@@ -37,21 +37,20 @@ export const Operations: FC<Props> = ({ position, operations }) => {
             if (!o?.done) {
                 setOperationIdx(i.toString())
                 setRemainder(o?.remainder || 0)
-                setCount(o?.remainder || 0)
+                setCount(o?.remainder.toString() || "0")
                 break
             }
         }
     }, [operations])
 
     const countHandler = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (+event.target.value > remainder || +event.target.value < 1) return
-        setCount(+event.target.value)
+        setCount(event.target.value)
     }
 
     const operationHandler = (event: SelectChangeEvent) => {
         setOperationIdx(event.target.value)
         const op = operations[+event.target.value]
-        setCount(op?.remainder || 0)
+        setCount(op?.remainder.toString() || "0")
         setRemainder(op?.remainder || 0)
     }
 
@@ -60,10 +59,12 @@ export const Operations: FC<Props> = ({ position, operations }) => {
     }
 
     const submitHandler = async () => {
+        if (+count > remainder || +count < 1) return
+
         const operation: ICompleteOperation = {
             id: operations[+operationIdx].id || "",
-            done: remainder === count,
-            remainder: remainder - count,
+            done: remainder === +count,
+            remainder: remainder - +count,
             reason: reason,
         }
 
@@ -123,7 +124,7 @@ export const Operations: FC<Props> = ({ position, operations }) => {
                     // pattern: "[0-9]*",
                 }}
             />
-            {count < remainder && (
+            {+count < remainder && (
                 <TextField
                     sx={{ minWidth: 150 }}
                     id='reason'

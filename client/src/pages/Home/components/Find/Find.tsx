@@ -82,7 +82,7 @@ export const Find: FC<Props> = () => {
                                   selectHandler={selectHandler}
                               />
                           ))
-                        : dirtyFields.search && <p className={classes.item}>Ничего не найдено</p>}
+                        : dirtyFields.search && <li className={classes.item}>Ничего не найдено</li>}
                 </ul>
             </div>
         </form>

@@ -16,6 +16,7 @@ type (
 		Auth        AuthConfig
 		Http        HttpConfig
 		Limiter     LimiterConfig
+		Urgency     UrgencyConfig
 	}
 
 	RedisConfig struct {
@@ -57,6 +58,11 @@ type (
 		Burst int           `mapstructure:"burst"`
 		TTL   time.Duration `mapstructure:"ttl"`
 	}
+
+	UrgencyConfig struct {
+		High   time.Duration `mapstructure:"high"`
+		Middle time.Duration `mapstructure:"middle"`
+	}
 )
 
 func Init(configDir string) (*Config, error) {
@@ -93,6 +99,9 @@ func unmarhal(conf *Config) error {
 		return err
 	}
 	if err := viper.UnmarshalKey("limiter", &conf.Limiter); err != nil {
+		return err
+	}
+	if err := viper.UnmarshalKey("urgency", &conf.Urgency); err != nil {
 		return err
 	}
 	if err := viper.UnmarshalKey("auth", &conf.Auth); err != nil {

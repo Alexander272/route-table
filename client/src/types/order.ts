@@ -21,6 +21,7 @@ export interface ISearchForm {
 export interface IGroupedOrder {
     id: string
     deadline: string
+    urgency: string
     orders: IOrderItem[]
 }
 

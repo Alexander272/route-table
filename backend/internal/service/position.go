@@ -175,13 +175,31 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 		return nil
 	}
 
-	if err := s.operation.Update(ctx, position.Operation); err != nil {
+	connected, err := s.operation.GetConnected(ctx, position.Id, position.Operation.Id)
+	if err != nil {
 		return err
 	}
 
-	if err := s.operation.DeleteSkipped(ctx, position.Id, position.Operation.Id, position.Count); err != nil {
+	if err := s.operation.Update(ctx, position.Operation); err != nil {
 		return err
 	}
+	if len(connected) > 0 {
+		for _, o := range connected {
+			remainder := o.Remainder - position.Operation.Count
+			operation := models.CompleteOperation{
+				Id:        o.Id,
+				Done:      remainder == 0,
+				Remainder: remainder,
+			}
+			if err := s.operation.Update(ctx, operation); err != nil {
+				return err
+			}
+		}
+	}
+
+	// if err := s.operation.DeleteSkipped(ctx, position.Id, position.Operation.Id, position.Count); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

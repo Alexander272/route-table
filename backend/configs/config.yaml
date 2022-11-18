@@ -33,3 +33,7 @@ limiter:
     rps: 10
     burst: 20
     ttl: 10m
+
+urgency:
+    high: 72h
+    middle: 120h

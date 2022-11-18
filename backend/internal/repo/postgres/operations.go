@@ -41,6 +41,18 @@ func (r *OperationRepo) GetWithReasons(ctx context.Context, positionId uuid.UUID
 	return operations, nil
 }
 
+// Получение связанных операций
+func (r *OperationRepo) GetConnected(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error) {
+	query := fmt.Sprintf(`SELECT id, remainder FROM %s WHERE position_id=$1 AND array[operation_id] <@ 
+		(SELECT connected FROM %s INNER JOIN %s ON operation_id=%s.id WHERE %s.id=$2)`,
+		OperationsTable, OperationsTable, RootOperationTable, RootOperationTable, OperationsTable)
+
+	if err := r.db.Select(&operations, query, positionId, operationId); err != nil {
+		return operations, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return operations, nil
+}
+
 func (r *OperationRepo) Create(ctx context.Context, operation models.OperationDTO) (id uuid.UUID, err error) {
 	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, position_id, done, remainder) VALUES ($1, $2, $3, $4, $5)", OperationsTable)
 	id = uuid.New()

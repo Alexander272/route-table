@@ -20,6 +20,7 @@ type Order struct {
 type GroupedOrder struct {
 	Id       uuid.UUID `json:"id"`
 	Deadline string    `json:"deadline"`
+	Urgency  string    `json:"urgency"`
 	Orders   []Order   `json:"orders"`
 }
 

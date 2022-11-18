@@ -8,6 +8,7 @@ import {
     Stack,
     Typography,
     Box,
+    Divider,
 } from "@mui/material"
 import React from "react"
 import useSWR from "swr"
@@ -25,17 +26,43 @@ export default function Orders() {
                 <Accordion
                     key={o.id}
                     TransitionProps={{ unmountOnExit: true }}
-                    defaultExpanded={i === 0}
-                    disableGutters
+                    defaultExpanded={true}
+                    // disableGutters
                 >
                     <AccordionSummary
                         expandIcon={<>&#9660;</>}
                         aria-controls='panel1a-content'
                         id='panel1a-header'
                     >
-                        <Typography color='primary' variant='h6'>
-                            {o.deadline}
-                        </Typography>
+                        <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            alignItems='center'
+                            divider={<Divider orientation='vertical' flexItem />}
+                            spacing={{ xs: 0, sm: 2 }}
+                        >
+                            <Typography color='primary' variant='h6'>
+                                Дата отгрузки {o.deadline}
+                            </Typography>
+
+                            <Stack
+                                direction={{ xs: "column", sm: "row" }}
+                                spacing={{ xs: 0, sm: 2 }}
+                                alignItems='center'
+                            >
+                                <Typography>Срочность</Typography>
+                                <Chip
+                                    label={o.urgency}
+                                    sx={{ width: "90px" }}
+                                    color={
+                                        o.urgency === "Высокая"
+                                            ? "error"
+                                            : o.urgency === "Средняя"
+                                            ? "primary"
+                                            : "success"
+                                    }
+                                />
+                            </Stack>
+                        </Stack>
                     </AccordionSummary>
                     <AccordionDetails>
                         {o.orders.map(o => (
@@ -66,7 +93,7 @@ export default function Orders() {
                                     {o.done ? (
                                         <Chip label='Выполнен' color='success' />
                                     ) : (
-                                        <Chip label='В работе' color='info' />
+                                        <Chip label='В работе' color='primary' />
                                     )}
                                     <Box sx={{ position: "relative", display: "inline-flex" }}>
                                         <CircularProgress

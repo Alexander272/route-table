@@ -36,6 +36,7 @@ type RootOperation interface {
 
 type Operation interface {
 	Get(context.Context, uuid.UUID) ([]models.Operation, error)
+	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.CompleteOperation) error
@@ -75,6 +76,8 @@ type Deps struct {
 	TokenManager    auth.TokenManager
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+	UrgencyHigh     time.Duration
+	UrgencyMid      time.Duration
 }
 
 func NewServices(deps Deps) *Services {
@@ -82,7 +85,7 @@ func NewServices(deps Deps) *Services {
 	reason := NewReasonService(deps.Repos.Reason)
 	operation := NewOperationService(deps.Repos.Operation, reason)
 	position := NewPositionService(deps.Repos.Position, operation, rootOperation)
-	order := NewOrderService(deps.Repos.Order, position)
+	order := NewOrderService(deps.Repos.Order, position, deps.UrgencyHigh, deps.UrgencyMid)
 
 	return &Services{
 		RootOperation: rootOperation,

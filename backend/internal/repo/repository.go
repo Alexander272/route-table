@@ -38,6 +38,7 @@ type Position interface {
 type Operation interface {
 	Get(context.Context, uuid.UUID) ([]models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
+	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
 	Create(context.Context, models.OperationDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error

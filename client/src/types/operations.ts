@@ -12,5 +12,6 @@ export interface ICompleteOperation {
     id: string
     done: boolean
     remainder: number
+    count: number
     reason: string
 }

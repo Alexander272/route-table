@@ -68,6 +68,8 @@ func main() {
 		TokenManager:    tokenManager,
 		AccessTokenTTL:  conf.Auth.AccessTokenTTL,
 		RefreshTokenTTL: conf.Auth.RefreshTokenTTL,
+		UrgencyHigh:     conf.Urgency.High,
+		UrgencyMid:      conf.Urgency.Middle,
 	})
 	handlers := transport.NewHandler(services)
 

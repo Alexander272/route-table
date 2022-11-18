@@ -35,5 +35,6 @@ type CompleteOperation struct {
 	Id        uuid.UUID `json:"id"`
 	Done      bool      `json:"done"`
 	Remainder int       `json:"remainder"`
+	Count     int       `json:"count"`
 	Reason    string    `json:"reason"`
 }

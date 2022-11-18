@@ -65,6 +65,7 @@ export const Operations: FC<Props> = ({ position, operations }) => {
             id: operations[+operationIdx].id || "",
             done: remainder === +count,
             remainder: remainder - +count,
+            count: +count,
             reason: reason,
         }
 

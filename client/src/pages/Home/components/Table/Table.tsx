@@ -86,7 +86,7 @@ export const OrderTable: FC<Props> = () => {
         data.append("order", files[0])
 
         try {
-            // await orderParse(data)
+            await orderParse(data)
             handleClick("success")
         } catch (error) {
             handleClick("error")

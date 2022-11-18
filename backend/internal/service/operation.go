@@ -23,13 +23,22 @@ func NewOperationService(repo repository.Operation, reason *ReasonService) *Oper
 	}
 }
 
-func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID) (operatios []models.Operation, err error) {
-	operatios, err = s.repo.Get(ctx, positionId)
+func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
+	operations, err = s.repo.Get(ctx, positionId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operation. error: %w", err)
 	}
 
-	return operatios, nil
+	return operations, nil
+}
+
+func (s *OperationService) GetConnected(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error) {
+	operations, err = s.repo.GetConnected(ctx, positionId, operationId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get connected operation. error: %w", err)
+	}
+
+	return operations, nil
 }
 
 func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {

@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
@@ -14,14 +16,18 @@ import (
 )
 
 type OrderService struct {
-	repo     repository.Order
-	position *PositionService
+	repo        repository.Order
+	position    *PositionService
+	urgencyHigh time.Duration
+	urgencyMid  time.Duration
 }
 
-func NewOrderService(repo repository.Order, position *PositionService) *OrderService {
+func NewOrderService(repo repository.Order, position *PositionService, urgencyHigh time.Duration, urgencyMid time.Duration) *OrderService {
 	return &OrderService{
-		repo:     repo,
-		position: position,
+		repo:        repo,
+		position:    position,
+		urgencyHigh: urgencyHigh,
+		urgencyMid:  urgencyMid,
 	}
 }
 
@@ -66,7 +72,11 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 				parts := strings.Split(row[Template.Order], " ")
 				_, ok := orders[parts[2]]
 				if !ok {
-					id, err := s.Create(ctx, models.OrderDTO{Number: parts[2], Deadline: row[Template.Deadline], Date: parts[4]})
+					date, err := time.Parse("02.01.2006", parts[4])
+					if err != nil {
+						return fmt.Errorf("failed to parse date of deadline. error: %w", err)
+					}
+					id, err := s.Create(ctx, models.OrderDTO{Number: parts[2], Deadline: row[Template.Deadline], Date: fmt.Sprintf("%d", date.Unix())})
 					if err != nil {
 						return err
 					}
@@ -104,15 +114,31 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 	}
 
 	groupId := uuid.New()
+	deadline, err := strconv.Atoi(o[0].Deadline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse date of deadline. error: %w", err)
+	}
+	date := time.Unix(int64(deadline), 0)
+
+	var urgency string
+	if time.Until(date) <= s.urgencyHigh {
+		urgency = "Высокая"
+	} else if time.Until(date) <= s.urgencyMid {
+		urgency = "Средняя"
+	} else {
+		urgency = "Низкая"
+	}
+
 	orders = append(orders, models.GroupedOrder{
 		Id:       groupId,
-		Deadline: o[0].Deadline,
+		Deadline: date.Format("02.01.2006"),
+		Urgency:  urgency,
 		Orders: []models.Order{{
 			Id:       o[0].Id,
 			Number:   o[0].Number,
 			Done:     o[0].Done,
 			Date:     o[0].Date,
-			Progress: math.Round(o[0].Progress*10) / 10,
+			Progress: math.Round(o[0].Progress*1000) / 10,
 		}},
 	})
 
@@ -121,25 +147,41 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 			continue
 		}
 
-		if o.Deadline == orders[len(orders)-1].Deadline {
+		deadline, err := strconv.Atoi(o.Deadline)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse date of deadline. error: %w", err)
+		}
+		date := time.Unix(int64(deadline), 0)
+
+		if date.Format("02.01.2006") == orders[len(orders)-1].Deadline {
 			orders[len(orders)-1].Orders = append(orders[len(orders)-1].Orders, models.Order{
 				Id:       o.Id,
 				Number:   o.Number,
 				Done:     o.Done,
 				Date:     o.Date,
-				Progress: math.Round(o.Progress*10) / 10,
+				Progress: math.Round(o.Progress*1000) / 10,
 			})
 		} else {
 			groupId := uuid.New()
+
+			if time.Until(date) <= s.urgencyHigh {
+				urgency = "Высокая"
+			} else if time.Until(date) <= s.urgencyMid {
+				urgency = "Средняя"
+			} else {
+				urgency = "Низкая"
+			}
+
 			orders = append(orders, models.GroupedOrder{
 				Id:       groupId,
-				Deadline: o.Deadline,
+				Deadline: date.Format("02.01.2006"),
+				Urgency:  urgency,
 				Orders: []models.Order{{
 					Id:       o.Id,
 					Number:   o.Number,
 					Done:     o.Done,
 					Date:     o.Date,
-					Progress: math.Round(o.Progress*10) / 10,
+					Progress: math.Round(o.Progress*1000) / 10,
 				}},
 			})
 		}

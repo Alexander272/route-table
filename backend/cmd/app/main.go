@@ -17,6 +17,7 @@ import (
 	"github.com/Alexander272/route-table/pkg/auth"
 	"github.com/Alexander272/route-table/pkg/database/postgres"
 	"github.com/Alexander272/route-table/pkg/database/redis"
+	"github.com/Alexander272/route-table/pkg/hasher"
 	"github.com/Alexander272/route-table/pkg/logger"
 	_ "github.com/lib/pq"
 	"github.com/subosito/gotenv"
@@ -60,12 +61,15 @@ func main() {
 		logger.Fatalf("failed to initialize token manager: %s", err.Error())
 	}
 
+	hasher := hasher.NewSHA256Hasher(10)
+
 	//* Services, Repos & API Handlers
 
 	repos := repository.NewRepo(db, redis)
 	services := service.NewServices(service.Deps{
 		Repos:           repos,
 		TokenManager:    tokenManager,
+		Hasher:          hasher,
 		AccessTokenTTL:  conf.Auth.AccessTokenTTL,
 		RefreshTokenTTL: conf.Auth.RefreshTokenTTL,
 		UrgencyHigh:     conf.Urgency.High,

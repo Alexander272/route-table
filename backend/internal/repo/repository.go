@@ -51,12 +51,31 @@ type Reason interface {
 	Delete(context.Context, models.ReasonDTO) error
 }
 
+type Role interface {
+	Get(context.Context) ([]models.Role, error)
+	Create(context.Context, models.RoleDTO) (uuid.UUID, error)
+	Update(context.Context, models.RoleDTO) error
+	Delete(context.Context, models.RoleDTO) error
+}
+
+type User interface {
+	Get(context.Context) ([]models.User, error)
+	Create(context.Context, models.UserDTO) (uuid.UUID, error)
+	Update(context.Context, models.UserDTO) error
+	Delete(context.Context, models.UserDTO) error
+}
+
+type Session interface{}
+
 type Repositories struct {
 	RootOperation
 	Order
 	Position
 	Operation
 	Reason
+	Role
+	User
+	Session
 }
 
 func NewRepo(db *sqlx.DB, redis redis.Cmdable) *Repositories {
@@ -66,5 +85,7 @@ func NewRepo(db *sqlx.DB, redis redis.Cmdable) *Repositories {
 		Position:      postgres.NewPositionRepo(db),
 		Operation:     postgres.NewOperationRepo(db),
 		Reason:        postgres.NewReasonRepo(db),
+		Role:          postgres.NewRoleRepo(db),
+		User:          postgres.NewUserRepo(db),
 	}
 }

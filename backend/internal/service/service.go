@@ -7,6 +7,7 @@ import (
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
 	"github.com/Alexander272/route-table/pkg/auth"
+	"github.com/Alexander272/route-table/pkg/hasher"
 	"github.com/google/uuid"
 	"github.com/xuri/excelize/v2"
 )
@@ -63,17 +64,34 @@ type Reason interface {
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
 }
 
+type Role interface {
+	Get(context.Context) ([]models.Role, error)
+	Create(context.Context, models.RoleDTO) (uuid.UUID, error)
+	Update(context.Context, models.RoleDTO) error
+	Delete(context.Context, models.RoleDTO) error
+}
+
+type User interface {
+	Get(context.Context) ([]models.User, error)
+	Create(context.Context, models.UserDTO) (uuid.UUID, error)
+	Update(context.Context, models.UserDTO) error
+	Delete(context.Context, models.UserDTO) error
+}
+
 type Services struct {
 	RootOperation
 	Operation
 	Position
 	Order
 	Reason
+	Role
+	User
 }
 
 type Deps struct {
 	Repos           *repository.Repositories
 	TokenManager    auth.TokenManager
+	Hasher          hasher.PasswordHasher
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
 	UrgencyHigh     time.Duration
@@ -93,5 +111,7 @@ func NewServices(deps Deps) *Services {
 		Operation:     operation,
 		Position:      position,
 		Order:         order,
+		Role:          NewRoleService(deps.Repos.Role),
+		User:          NewUserService(deps.Repos.User, deps.Hasher),
 	}
 }

@@ -29,6 +29,8 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitOrderRoutes(v1)
 		h.InitPositionsRoutes(v1)
 		h.InitOperationRoutes(v1)
+		h.InitRoleRoutes(v1)
+		h.InitUsersRoutes(v1)
 		v1.GET("/", h.notImplemented)
 	}
 }

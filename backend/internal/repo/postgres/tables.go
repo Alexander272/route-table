@@ -6,4 +6,6 @@ const (
 	PositionsTable     = "positions"
 	OperationsTable    = "operations"
 	ReasonsTable       = "reasons"
+	RolesTable         = "roles"
+	UsersTable         = "users"
 )

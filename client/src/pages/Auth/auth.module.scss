@@ -1,0 +1,70 @@
+.page {
+    min-height: 100vh;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--body-bg-color);
+    overflow: hidden;
+    position: relative;
+
+    &::after,
+    &::before,
+    .container::before {
+        content: "";
+        position: absolute;
+        border-radius: 16px;
+        background-color: var(--button-bg-color);
+        box-shadow: 1px 1px 7px 0 var(--button-bg-color);
+    }
+
+    &::after {
+        left: -5%;
+        top: -2%;
+        width: 200px;
+        height: 200px;
+        transform: rotate(347deg);
+    }
+
+    &::before {
+        right: -16%;
+        top: 7%;
+        height: 600px;
+        width: 500px;
+        transform: rotate(332deg);
+    }
+}
+
+.container {
+    position: relative;
+    z-index: 5;
+    margin: 20px 0;
+    border-radius: 16px;
+    background-color: var(--theme-bg-color);
+    box-shadow: 2px 2px 8px 0px #3636362b;
+    width: 400px;
+    overflow: hidden;
+    max-height: 400px;
+    transition: all 0.5s ease-in-out;
+}
+
+.signup {
+    max-height: 550px;
+}
+
+@media (max-width: 800px) {
+    .page {
+        &::before {
+            top: 40%;
+            height: 400px;
+            width: 300px;
+        }
+    }
+}
+
+@media (max-width: 420px) {
+    .container {
+        width: 100%;
+    }
+}

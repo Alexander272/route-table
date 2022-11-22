@@ -18,6 +18,7 @@ export const Find: FC<Props> = () => {
         register,
         handleSubmit,
         setValue,
+        reset,
         watch,
         formState: { dirtyFields },
     } = useForm<ISearchForm>({
@@ -37,12 +38,12 @@ export const Find: FC<Props> = () => {
     const submitHandler = (data: ISearchForm) => {
         if (res && res.data) {
             changeOrderId(res.data[data.resultIndex].id)
-            setValue("search", res.data[data.resultIndex].number)
+            reset()
         }
     }
 
     const selectHandler = (order: IFindedOrder) => {
-        setValue("search", order.number)
+        reset()
         changeOrderId(order.id)
     }
 
@@ -52,7 +53,7 @@ export const Find: FC<Props> = () => {
                 setValue("resultIndex", (selected + 1) % res.data.length)
             }
             if (event.code === "ArrowUp") {
-                setValue("resultIndex", res.data.length - 2 - (selected - 1))
+                setValue("resultIndex", selected - 1 < 0 ? res.data.length - 1 : selected - 1)
             }
         }
     }

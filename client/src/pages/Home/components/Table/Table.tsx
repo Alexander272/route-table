@@ -18,6 +18,7 @@ import {
 import React, { FC, useCallback, useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import useSWR from "swr"
+import { AuthContext } from "../../../../context/AuthProvider"
 import { OrderContext } from "../../../../context/order"
 import { useDebounce } from "../../../../hooks/debounse"
 import { orderParse } from "../../../../service/order"
@@ -41,6 +42,7 @@ type Props = {
 }
 
 export const OrderTable: FC<Props> = () => {
+    const { user } = useContext(AuthContext)
     const { orderId } = useContext(OrderContext)
     const [positions, setPositions] = useState<IPositionForOrder[]>([])
     const [search, setSearch] = useState("")
@@ -129,10 +131,12 @@ export const OrderTable: FC<Props> = () => {
                         {messages[type].message}
                     </Alert>
                 </Snackbar>
-                <Button variant='contained' component='label' onChange={uploadHandler}>
-                    Загрузить заказ
-                    <input hidden type='file' />
-                </Button>
+                {user?.role === "master" && (
+                    <Button variant='contained' component='label' onChange={uploadHandler}>
+                        Загрузить заказ
+                        <input hidden type='file' />
+                    </Button>
+                )}
             </Box>
         )
 
@@ -168,10 +172,12 @@ export const OrderTable: FC<Props> = () => {
                     Заказ №{order?.data.number}
                 </Typography>
 
-                <Button variant='contained' component='label' onChange={uploadHandler}>
-                    Загрузить заказ
-                    <input hidden type='file' />
-                </Button>
+                {user?.role === "master" && (
+                    <Button variant='contained' component='label' onChange={uploadHandler}>
+                        Загрузить заказ
+                        <input hidden type='file' />
+                    </Button>
+                )}
             </Stack>
 
             <TableContainer sx={{ maxHeight: 680 }}>

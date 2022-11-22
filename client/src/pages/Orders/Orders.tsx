@@ -22,7 +22,7 @@ export default function Orders() {
 
     return (
         <Container sx={{ marginTop: 5 }}>
-            {res?.data.map((o, i) => (
+            {res?.data.map(o => (
                 <Accordion
                     key={o.id}
                     TransitionProps={{ unmountOnExit: true }}

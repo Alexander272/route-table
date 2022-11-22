@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useContext } from "react"
 import { Box, Container, Divider, Paper, Stack, Typography, CircularProgress } from "@mui/material"
 import { useParams } from "react-router-dom"
 import useSWR from "swr"
@@ -6,9 +6,11 @@ import { IPosition } from "../../types/positions"
 import { fetcher } from "../../service/read"
 import { OperList } from "./components/List/List"
 import { Operations } from "./components/Operations/Operations"
+import { AuthContext } from "../../context/AuthProvider"
 
 export default function Position() {
     const params = useParams()
+    const { user } = useContext(AuthContext)
 
     const { data: position } = useSWR<{ data: IPosition }>(
         `/api/v1/positions/${params.id}`,
@@ -71,12 +73,12 @@ export default function Position() {
 
                     <OperList operations={position.data.operations || []} />
 
-                    {!position.data.done && (
+                    {!position.data.done && user?.role !== "master" ? (
                         <Operations
                             position={position.data}
                             operations={position.data.operations}
                         />
-                    )}
+                    ) : null}
                 </Paper>
             )}
         </Container>

@@ -6,10 +6,11 @@ import (
 	"github.com/Alexander272/route-table/internal/models/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (h *Handler) InitPositionsRoutes(api *gin.RouterGroup) {
-	positions := api.Group("/positions")
+	positions := api.Group("/positions", h.middleware.UserIdentity)
 	{
 		positions.GET("/:id", h.getPosition)
 	}
@@ -22,7 +23,8 @@ func (h *Handler) getPosition(c *gin.Context) {
 		return
 	}
 
-	reason := c.Query("reason")
+	role, _ := c.Get(h.middleware.RoleCtx)
+	enabledOperations, _ := c.Get(h.middleware.EnabledOperationsCtx)
 
 	uuId, err := uuid.Parse(id)
 	if err != nil {
@@ -32,14 +34,14 @@ func (h *Handler) getPosition(c *gin.Context) {
 
 	var position interface{}
 
-	if reason != "" {
+	if role == "master" {
 		position, err = h.services.Position.GetWithReasons(c, uuId)
 		if err != nil {
 			response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
 			return
 		}
 	} else {
-		position, err = h.services.Position.Get(c, uuId)
+		position, err = h.services.Position.Get(c, uuId, enabledOperations.(pq.StringArray))
 		if err != nil {
 			response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")
 			return

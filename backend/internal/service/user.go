@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
@@ -13,17 +16,49 @@ import (
 type UserService struct {
 	repo   repository.User
 	hasher hasher.PasswordHasher
+	role   *RoleService
 }
 
-func NewUserService(repo repository.User, hasher hasher.PasswordHasher) *UserService {
+func NewUserService(repo repository.User, hasher hasher.PasswordHasher, role *RoleService) *UserService {
 	return &UserService{
 		repo:   repo,
 		hasher: hasher,
+		role:   role,
 	}
 }
 
-func (s *UserService) Get(ctx context.Context) (users []models.User, err error) {
-	users, err = s.repo.Get(ctx)
+func (s *UserService) Get(ctx context.Context, u models.SignIn) (user models.UserWithRole, err error) {
+	user, err = s.repo.Get(ctx, u)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, err
+		}
+		return user, fmt.Errorf("failed to get user. error: %w", err)
+	}
+
+	parts := strings.Split(user.Password, ".")
+	salt := parts[1]
+	password := parts[0]
+
+	pass, err := s.hasher.Hash(u.Password, salt)
+	if err != nil {
+		return user, fmt.Errorf("failed to hash password. error: %w", err)
+	}
+
+	if pass != password {
+		return user, models.ErrPassword
+	}
+
+	user.Role, err = s.role.Get(ctx, user.RoleId)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetAll(ctx context.Context) (users []models.User, err error) {
+	users, err = s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users. error: %w", err)
 	}

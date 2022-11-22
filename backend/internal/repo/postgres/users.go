@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/Alexander272/route-table/internal/models"
@@ -17,7 +19,20 @@ func NewUserRepo(db *sqlx.DB) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-func (r *UserRepo) Get(ctx context.Context) (users []models.User, err error) {
+func (r *UserRepo) Get(ctx context.Context, u models.SignIn) (user models.UserWithRole, err error) {
+	query := fmt.Sprintf("SELECT id, password, role_id FROM %s WHERE login=$1", UsersTable)
+
+	if err = r.db.Get(&user, query, u.Login); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, err
+		}
+		return user, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+
+	return user, nil
+}
+
+func (r *UserRepo) GetAll(ctx context.Context) (users []models.User, err error) {
 	query := fmt.Sprintf("SELECT %s.id, login, role FROM %s INNER JOIN %s ON role_id=%s.id",
 		UsersTable, UsersTable, RolesTable, RolesTable)
 

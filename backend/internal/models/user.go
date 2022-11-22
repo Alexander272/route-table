@@ -18,3 +18,10 @@ type UserDTO struct {
 	Password string    `json:"password"`
 	RoleId   uuid.UUID `json:"roleId"`
 }
+
+type UserWithRole struct {
+	Id       uuid.UUID `db:"id" json:"id"`
+	Password string    `db:"password" json:"-"`
+	RoleId   uuid.UUID `db:"role_id" json:"-"`
+	Role     Role      `json:"role"`
+}

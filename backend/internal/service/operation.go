@@ -9,6 +9,7 @@ import (
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type OperationService struct {
@@ -23,8 +24,8 @@ func NewOperationService(repo repository.Operation, reason *ReasonService) *Oper
 	}
 }
 
-func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
-	operations, err = s.repo.Get(ctx, positionId)
+func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (operations []models.Operation, err error) {
+	operations, err = s.repo.Get(ctx, positionId, enabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operation. error: %w", err)
 	}
@@ -100,11 +101,11 @@ func (s *OperationService) CreateFew(ctx context.Context, operations []models.Op
 
 func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, done bool, remaider int,
 ) (op1 models.OperationDTO, op2 models.OperationDTO, err error) {
-	operations1, err := s.repo.Get(ctx, posId1)
+	operations1, err := s.repo.GetAll(ctx, posId1)
 	if err != nil {
 		return op1, op2, fmt.Errorf("failed to get operation. error: %w", err)
 	}
-	operations2, err := s.repo.Get(ctx, posId2)
+	operations2, err := s.repo.GetAll(ctx, posId2)
 	if err != nil {
 		return op1, op2, fmt.Errorf("failed to get operation. error: %w", err)
 	}
@@ -165,7 +166,7 @@ func (s *OperationService) Update(ctx context.Context, operation models.Complete
 }
 
 func (s *OperationService) DeleteSkipped(ctx context.Context, positionId, operationId uuid.UUID, count int) error {
-	operations, err := s.repo.Get(ctx, positionId)
+	operations, err := s.repo.GetAll(ctx, positionId)
 	if err != nil {
 		return fmt.Errorf("failed to get operation. error: %w", err)
 	}

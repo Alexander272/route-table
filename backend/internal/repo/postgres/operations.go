@@ -8,6 +8,7 @@ import (
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type OperationRepo struct {
@@ -18,9 +19,20 @@ func NewOperationRepo(db *sqlx.DB) *OperationRepo {
 	return &OperationRepo{db: db}
 }
 
-func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
+func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (operations []models.Operation, err error) {
 	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
-		WHERE position_id=$1 ORDER BY step_number`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
+		WHERE position_id=$1 AND array[%s.id] <@ $2 ORDER BY step_number`,
+		OperationsTable, OperationsTable, RootOperationTable, RootOperationTable, RootOperationTable)
+
+	if err := r.db.Select(&operations, query, positionId, enabled); err != nil {
+		return operations, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return operations, nil
+}
+
+func (r *OperationRepo) GetAll(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
+		WHERE position_id=$1  ORDER BY step_number`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
 
 	if err := r.db.Select(&operations, query, positionId); err != nil {
 		return operations, fmt.Errorf("failed to execute query. error: %w", err)

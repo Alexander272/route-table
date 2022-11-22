@@ -20,7 +20,7 @@ func (h *Handler) InitUsersRoutes(api *gin.RouterGroup) {
 }
 
 func (h *Handler) getUsers(c *gin.Context) {
-	users, err := h.services.User.Get(c)
+	users, err := h.services.User.GetAll(c)
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get users")
 		return

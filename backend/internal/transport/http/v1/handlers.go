@@ -1,23 +1,29 @@
 package v1
 
 import (
+	"github.com/Alexander272/route-table/internal/config"
 	"github.com/Alexander272/route-table/internal/service"
+	"github.com/Alexander272/route-table/internal/transport/http/middleware"
 	"github.com/gin-gonic/gin"
 )
 
+const CookieName = "session"
+
 type Handler struct {
-	services *service.Services
-	// middleware *middleware.Middleware
+	services   *service.Services
+	auth       config.AuthConfig
+	cookieName string
+	middleware *middleware.Middleware
 }
 
-// const CookieName = "session"
-
-func NewHandler(services *service.Services) *Handler {
-	// middleware.CookieName = CookieName
+func NewHandler(services *service.Services, auth config.AuthConfig, middleware *middleware.Middleware) *Handler {
+	middleware.CookieName = CookieName
 
 	return &Handler{
-		services: services,
-		// middleware: middleware,
+		services:   services,
+		auth:       auth,
+		cookieName: CookieName,
+		middleware: middleware,
 	}
 }
 
@@ -31,6 +37,7 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitOperationRoutes(v1)
 		h.InitRoleRoutes(v1)
 		h.InitUsersRoutes(v1)
+		h.InitAuthRoutes(v1)
 		v1.GET("/", h.notImplemented)
 	}
 }

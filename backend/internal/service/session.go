@@ -9,57 +9,73 @@ import (
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
 	"github.com/Alexander272/route-table/pkg/auth"
+	"github.com/google/uuid"
 )
 
 type SessionService struct {
 	repo            repository.Session
+	user            *UserService
 	tokenManager    auth.TokenManager
 	accessTokenTTL  time.Duration
 	refreshTokenTTL time.Duration
 }
 
-func NewSessionService(repo repository.Session, manager auth.TokenManager, accessTTL, refreshTTL time.Duration) *SessionService {
+func NewSessionService(repo repository.Session, user *UserService, manager auth.TokenManager, accessTTL, refreshTTL time.Duration) *SessionService {
 	return &SessionService{
 		repo:            repo,
+		user:            user,
 		tokenManager:    manager,
 		accessTokenTTL:  accessTTL,
 		refreshTokenTTL: refreshTTL,
 	}
 }
 
-func (s *SessionService) SignIn(ctx context.Context, user *models.User) (string, error) {
-	// _, accessToken, err := s.tokenManager.NewJWT(user.Id, user.Email, user.Roles, s.accessTokenTTL)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// refreshToken, err := s.tokenManager.NewRefreshToken()
-	// if err != nil {
-	// 	return "", err
-	// }
+func (s *SessionService) SignIn(ctx context.Context, u models.SignIn) (models.User, string, error) {
+	user, err := s.user.Get(ctx, u)
+	if err != nil {
+		return models.User{}, "", err
+	}
 
-	// accessData := repository.SessionData{
-	// 	UserId:      user.Id,
-	// 	Roles:       user.Roles,
-	// 	AccessToken: accessToken,
-	// 	Exp:         s.accessTokenTTL,
-	// }
-	// if err := s.repo.Create(ctx, user.Id, accessData); err != nil {
-	// 	return "", fmt.Errorf("failed to create session. error: %w", err)
-	// }
+	return s.Refresh(ctx, user)
+}
 
-	// refreshData := repository.SessionData{
-	// 	UserId:       user.Id,
-	// 	Roles:        user.Roles,
-	// 	AccessToken:  accessToken,
-	// 	RefreshToken: refreshToken,
-	// 	Exp:          s.refreshTokenTTL,
-	// }
-	// if err := s.repo.Create(ctx, fmt.Sprintf("%s_refresh", user.Id), refreshData); err != nil {
-	// 	return "", fmt.Errorf("failed to create session (refresh). error: %w", err)
-	// }
+func (s *SessionService) Refresh(ctx context.Context, user models.UserWithRole) (models.User, string, error) {
+	_, accessToken, err := s.tokenManager.NewJWT(user.Id.String(), user.Role, s.accessTokenTTL)
+	if err != nil {
+		return models.User{}, "", err
+	}
+	refreshToken, err := s.tokenManager.NewRefreshToken()
+	if err != nil {
+		return models.User{}, "", err
+	}
 
-	// return accessToken, nil
-	return "", nil
+	accessData := models.SessionData{
+		UserId:      user.Id.String(),
+		Role:        user.Role,
+		AccessToken: accessToken,
+		Exp:         s.accessTokenTTL,
+	}
+	if err := s.repo.Create(ctx, refreshToken, accessData); err != nil {
+		return models.User{}, "", fmt.Errorf("failed to create session. error: %w", err)
+	}
+
+	refreshData := models.SessionData{
+		UserId:       user.Id.String(),
+		Role:         user.Role,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		Exp:          s.refreshTokenTTL,
+	}
+	if err := s.repo.Create(ctx, fmt.Sprintf("%s_refresh", user.Id), refreshData); err != nil {
+		return models.User{}, "", fmt.Errorf("failed to create session (refresh). error: %w", err)
+	}
+
+	retUser := models.User{
+		Id:   user.Id,
+		Role: user.Role.Role,
+	}
+
+	return retUser, accessToken, nil
 }
 
 func (s *SessionService) SingOut(ctx context.Context, userId string) error {
@@ -76,15 +92,15 @@ func (s *SessionService) SingOut(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (s *SessionService) CheckSession(ctx context.Context, u *models.User, token string) (bool, error) {
-	user, err := s.repo.Get(ctx, u.Id)
-	if err != nil && !errors.Is(err, models.ErrSessionEmpty) {
-		return false, fmt.Errorf("failed to get session. error: %w", err)
-	}
-
-	refreshUser, err := s.repo.Get(ctx, fmt.Sprintf("%s_refresh", u.Id))
+func (s *SessionService) CheckSession(ctx context.Context, u models.UserWithRole, token string) (bool, error) {
+	refreshUser, err := s.repo.Get(ctx, fmt.Sprintf("%s_refresh", u.Id.String()))
 	if err != nil {
 		return false, fmt.Errorf("failed to get session (refresh). error: %w", err)
+	}
+
+	user, err := s.repo.Get(ctx, refreshUser.RefreshToken)
+	if err != nil && !errors.Is(err, models.ErrSessionEmpty) {
+		return false, fmt.Errorf("failed to get session. error: %w", err)
 	}
 
 	if user.AccessToken != token && refreshUser.AccessToken != token {
@@ -97,28 +113,41 @@ func (s *SessionService) CheckSession(ctx context.Context, u *models.User, token
 	return false, nil
 }
 
-func (s *SessionService) TokenParse(token string) (user *models.User, err error) {
+func (s *SessionService) TokenParse(token string) (user models.UserWithRole, err error) {
 	claims, err := s.tokenManager.Parse(token)
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
-	// var roles []*models.Role
-	// r := claims["roles"].([]interface{})
-	// for _, v := range r {
-	// 	m := v.(map[string]interface{})
-	// 	roles = append(roles, &models.Role{
-	// 		Id:      m["id"].(string),
-	// 		Service: m["service"].(string),
-	// 		Role:    m["role"].(string),
-	// 	})
-	// }
+	r := claims["role"].(map[string]interface{})
 
-	// user = &user_api.User{
-	// 	Id:    claims["userId"].(string),
-	// 	Email: claims["email"].(string),
-	// 	Roles: roles,
-	// }
+	roleId, err := uuid.Parse(r["id"].(string))
+	if err != nil {
+		return user, fmt.Errorf("failed to parse uuid. error: %w", err)
+	}
+
+	op := r["operations"].([]interface{})
+	oprations := make([]string, 0, len(op))
+	for _, v := range op {
+		oprations = append(oprations, v.(string))
+	}
+
+	role := models.Role{
+		Id:         roleId,
+		Title:      r["title"].(string),
+		Role:       r["role"].(string),
+		Operations: oprations,
+	}
+
+	userId, err := uuid.Parse(claims["userId"].(string))
+	if err != nil {
+		return user, fmt.Errorf("failed to parse uuid. error: %w", err)
+	}
+
+	user = models.UserWithRole{
+		Id:   userId,
+		Role: role,
+	}
 
 	return user, nil
 }

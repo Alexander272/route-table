@@ -7,7 +7,9 @@ import (
 
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
+	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type PositionService struct {
@@ -29,10 +31,6 @@ var gasket map[string][]string = map[string][]string{
 	"СНП-Г": {"наружное"},
 	"СНП-В": {"внутрен."},
 }
-
-// func (s *PositionService) Create(ctx context.Context, position models.PositionDTO) (id uuid.UUID, err error) {
-
-// }
 
 func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.UUID, positions [][]string) error {
 	operations := make([]models.OperationDTO, 0, 200)
@@ -94,13 +92,14 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 	return nil
 }
 
-func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID) (position models.Position, err error) {
+func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (position models.Position, err error) {
+	logger.Debug(enabled)
 	position, err = s.repo.Get(ctx, positionId)
 	if err != nil {
 		return models.Position{}, fmt.Errorf("failed to get position. error: %w", err)
 	}
 
-	operation, err := s.operation.Get(ctx, positionId)
+	operation, err := s.operation.Get(ctx, positionId, enabled)
 	if err != nil {
 		return models.Position{}, err
 	}
@@ -121,6 +120,7 @@ func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UU
 		Count:     pos.Count,
 		Title:     pos.Title,
 		Ring:      pos.Ring,
+		Done:      pos.Done,
 		Deadline:  pos.Deadline,
 		Connected: pos.Connected,
 	}

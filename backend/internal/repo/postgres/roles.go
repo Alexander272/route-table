@@ -18,7 +18,16 @@ func NewRoleRepo(db *sqlx.DB) *RoleRepo {
 	return &RoleRepo{db: db}
 }
 
-func (r *RoleRepo) Get(ctx context.Context) (roles []models.Role, err error) {
+func (r *RoleRepo) Get(ctx context.Context, roleId uuid.UUID) (role models.Role, err error) {
+	query := fmt.Sprintf("SELECT id, title, role, operations FROM %s WHERE id=$1", RolesTable)
+
+	if err := r.db.Get(&role, query, roleId); err != nil {
+		return role, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return role, nil
+}
+
+func (r *RoleRepo) GetAll(ctx context.Context) (roles []models.Role, err error) {
 	query := fmt.Sprintf("SELECT id, title, role, operations FROM %s", RolesTable)
 
 	if err := r.db.Select(&roles, query); err != nil {

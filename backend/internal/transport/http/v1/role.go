@@ -20,7 +20,7 @@ func (h *Handler) InitRoleRoutes(api *gin.RouterGroup) {
 }
 
 func (h *Handler) getRoles(c *gin.Context) {
-	roles, err := h.services.Role.Get(c)
+	roles, err := h.services.Role.GetAll(c)
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get roles")
 		return

@@ -9,16 +9,9 @@ import (
 	"github.com/Alexander272/route-table/pkg/auth"
 	"github.com/Alexander272/route-table/pkg/hasher"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/xuri/excelize/v2"
 )
-
-// var Template map[string]int = map[string]int{
-// 	"Order":    18,
-// 	"Title":    3,
-// 	"Position": 6,
-// 	"Count":    10,
-// 	"Deadline": 5,
-// }
 
 var Template models.Template = models.Template{
 	Order:    18,
@@ -36,7 +29,7 @@ type RootOperation interface {
 }
 
 type Operation interface {
-	Get(context.Context, uuid.UUID) ([]models.Operation, error)
+	Get(context.Context, uuid.UUID, pq.StringArray) ([]models.Operation, error)
 	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
@@ -44,7 +37,7 @@ type Operation interface {
 }
 
 type Position interface {
-	Get(context.Context, uuid.UUID) (models.Position, error)
+	Get(context.Context, uuid.UUID, pq.StringArray) (models.Position, error)
 	GetWithReasons(context.Context, uuid.UUID) (models.PositionWithReason, error)
 	CreateFew(context.Context, map[string]uuid.UUID, [][]string) error
 	Update(context.Context, models.CompletePosition) error
@@ -65,17 +58,26 @@ type Reason interface {
 }
 
 type Role interface {
-	Get(context.Context) ([]models.Role, error)
+	Get(context.Context, uuid.UUID) (models.Role, error)
+	GetAll(context.Context) ([]models.Role, error)
 	Create(context.Context, models.RoleDTO) (uuid.UUID, error)
 	Update(context.Context, models.RoleDTO) error
 	Delete(context.Context, models.RoleDTO) error
 }
 
 type User interface {
-	Get(context.Context) ([]models.User, error)
+	GetAll(context.Context) ([]models.User, error)
 	Create(context.Context, models.UserDTO) (uuid.UUID, error)
 	Update(context.Context, models.UserDTO) error
 	Delete(context.Context, models.UserDTO) error
+}
+
+type Session interface {
+	SignIn(ctx context.Context, u models.SignIn) (models.User, string, error)
+	SingOut(ctx context.Context, userId string) error
+	Refresh(ctx context.Context, user models.UserWithRole) (models.User, string, error)
+	CheckSession(ctx context.Context, u models.UserWithRole, token string) (bool, error)
+	TokenParse(token string) (user models.UserWithRole, err error)
 }
 
 type Services struct {
@@ -86,6 +88,7 @@ type Services struct {
 	Reason
 	Role
 	User
+	Session
 }
 
 type Deps struct {
@@ -104,6 +107,9 @@ func NewServices(deps Deps) *Services {
 	operation := NewOperationService(deps.Repos.Operation, reason)
 	position := NewPositionService(deps.Repos.Position, operation, rootOperation)
 	order := NewOrderService(deps.Repos.Order, position, deps.UrgencyHigh, deps.UrgencyMid)
+	role := NewRoleService(deps.Repos.Role)
+	user := NewUserService(deps.Repos.User, deps.Hasher, role)
+	session := NewSessionService(deps.Repos.Session, user, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
 
 	return &Services{
 		RootOperation: rootOperation,
@@ -111,7 +117,8 @@ func NewServices(deps Deps) *Services {
 		Operation:     operation,
 		Position:      position,
 		Order:         order,
-		Role:          NewRoleService(deps.Repos.Role),
-		User:          NewUserService(deps.Repos.User, deps.Hasher),
+		Role:          role,
+		User:          user,
+		Session:       session,
 	}
 }

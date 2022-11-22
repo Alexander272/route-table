@@ -17,8 +17,17 @@ func NewRoleService(repo repository.Role) *RoleService {
 	return &RoleService{repo: repo}
 }
 
-func (s *RoleService) Get(ctx context.Context) (roles []models.Role, err error) {
-	roles, err = s.repo.Get(ctx)
+func (s *RoleService) Get(ctx context.Context, roleId uuid.UUID) (role models.Role, err error) {
+	role, err = s.repo.Get(ctx, roleId)
+	if err != nil {
+		return role, fmt.Errorf("failed to get role. error: %w", err)
+	}
+
+	return role, nil
+}
+
+func (s *RoleService) GetAll(ctx context.Context) (roles []models.Role, err error) {
+	roles, err = s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get roles. error: %w", err)
 	}

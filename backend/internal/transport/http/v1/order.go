@@ -10,10 +10,10 @@ import (
 )
 
 func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
-	orders := api.Group("/orders")
+	orders := api.Group("/orders", h.middleware.UserIdentity)
 	{
-		orders.POST("/parse", h.ordersParse)
-		orders.GET("/", h.getOrders)
+		orders.POST("/parse", h.middleware.AccessForMaster, h.ordersParse)
+		orders.GET("/", h.middleware.AccessForDisplay, h.getOrders)
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
 	}

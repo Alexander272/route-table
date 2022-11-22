@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) InitOperationRoutes(api *gin.RouterGroup) {
-	operations := api.Group("/operations")
+	operations := api.Group("/operations", h.middleware.UserIdentity)
 	{
 		operations.PATCH("/:id", h.completeOperation)
 	}

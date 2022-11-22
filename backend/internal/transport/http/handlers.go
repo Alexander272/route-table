@@ -5,6 +5,7 @@ import (
 
 	"github.com/Alexander272/route-table/internal/config"
 	"github.com/Alexander272/route-table/internal/service"
+	"github.com/Alexander272/route-table/internal/transport/http/middleware"
 	httpV1 "github.com/Alexander272/route-table/internal/transport/http/v1"
 	"github.com/Alexander272/route-table/pkg/limiter"
 	"github.com/gin-gonic/gin"
@@ -39,13 +40,13 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 		c.String(http.StatusOK, "pong")
 	})
 
-	h.initAPI(router)
+	h.initAPI(router, conf.Auth)
 
 	return router
 }
 
-func (h *Handler) initAPI(router *gin.Engine) {
-	handlerV1 := httpV1.NewHandler(h.services)
+func (h *Handler) initAPI(router *gin.Engine, auth config.AuthConfig) {
+	handlerV1 := httpV1.NewHandler(h.services, auth, middleware.NewMiddleware(h.services, auth))
 	api := router.Group("/api")
 	{
 		handlerV1.Init(api)

@@ -12,10 +12,7 @@ export default function Position() {
     const params = useParams()
     const { user } = useContext(AuthContext)
 
-    const { data: position } = useSWR<{ data: IPosition }>(
-        `/api/v1/positions/${params.id}`,
-        fetcher
-    )
+    const { data: position } = useSWR<{ data: IPosition }>(`/positions/${params.id}`, fetcher)
 
     return (
         <Container sx={{ margin: "auto" }}>

@@ -50,10 +50,7 @@ export const OrderTable: FC<Props> = () => {
     const [type, setType] = useState<"success" | "error">("success")
     const searchValue = useDebounce(search, 500)
 
-    const { data: order } = useSWR<{ data: IOrder }>(
-        orderId ? `/api/v1/orders/${orderId}` : null,
-        fetcher
-    )
+    const { data: order } = useSWR<{ data: IOrder }>(orderId ? `/orders/${orderId}` : null, fetcher)
 
     useEffect(() => {
         if (order) setPositions(order.data.positions)

@@ -1,9 +1,9 @@
-import axios from "axios"
 import { ICompletePosition } from "../types/positions"
+import api from "./api"
 
 export const operationComplite = async (data: ICompletePosition) => {
     try {
-        await axios.patch(`/api/v1/operations/${data.id}`, data)
+        await api.patch(`/operations/${data.id}`, data)
     } catch (error) {
         console.log(error)
     }

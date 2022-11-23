@@ -31,7 +31,7 @@ export const Find: FC<Props> = () => {
     const { changeOrderId } = useContext(OrderContext)
 
     const { data: res } = useSWR<{ data: IFindedOrder[] }>(
-        searchValue ? `/api/v1/orders/number/${searchValue}` : null,
+        searchValue ? `/orders/number/${searchValue}` : null,
         fetcher
     )
 

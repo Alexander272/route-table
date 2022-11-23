@@ -1,8 +1,8 @@
-import axios from "axios"
+import api from "./api"
 
 export const orderParse = async (data: FormData) => {
     try {
-        await axios.post("/api/v1/orders/parse", data)
+        await api.post("/orders/parse", data)
     } catch (error: any) {
         console.log(error)
         throw error.response.message

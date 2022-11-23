@@ -16,7 +16,7 @@ import { fetcher } from "../../service/read"
 import { IGroupedOrder } from "../../types/order"
 
 export default function Orders() {
-    const { data: res } = useSWR<{ data: IGroupedOrder[] }>("/api/v1/orders/", fetcher, {
+    const { data: res } = useSWR<{ data: IGroupedOrder[] }>("/orders/", fetcher, {
         refreshInterval: 60 * 1000,
     })
 

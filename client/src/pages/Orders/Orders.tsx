@@ -16,9 +16,11 @@ import { fetcher } from "../../service/read"
 import { IGroupedOrder } from "../../types/order"
 
 export default function Orders() {
-    const { data: res } = useSWR<{ data: IGroupedOrder[] }>("/orders/", fetcher, {
+    const { data: res, error } = useSWR<{ data: IGroupedOrder[] }>("/orders/", fetcher, {
         refreshInterval: 60 * 1000,
     })
+
+    if (error) return null
 
     return (
         <Container sx={{ marginTop: 5 }}>

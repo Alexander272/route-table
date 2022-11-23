@@ -12,7 +12,7 @@ export function useRefresh() {
             const res = await refresh()
             setUser(res.data)
         } catch (error: any) {
-            console.log(error.response.message)
+            console.log(error.response)
         } finally {
             setReady(true)
         }

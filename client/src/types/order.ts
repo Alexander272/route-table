@@ -25,6 +25,12 @@ export interface IGroupedOrder {
     orders: IOrderItem[]
 }
 
+export interface IUrgencyGroup {
+    high: IGroupedOrder[]
+    middle: IGroupedOrder[]
+    low: IGroupedOrder[]
+}
+
 export interface IOrderItem {
     id: string
     number: string

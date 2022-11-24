@@ -21,7 +21,7 @@ export const Header: FC<Props> = () => {
             <div className={classes.content}>
                 <a
                     className={classes.logoLink}
-                    href='https://pro.sealur.ru/'
+                    href='https://route.sealur.ru/'
                     target='_blank'
                     rel='noreferrer'
                 >

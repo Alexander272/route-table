@@ -5,6 +5,7 @@ export interface IOperation {
     title: string
     done: boolean
     remainder: number
+    isFinish: boolean
     reasons?: IReason[]
 }
 

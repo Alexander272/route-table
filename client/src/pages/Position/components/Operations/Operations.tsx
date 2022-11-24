@@ -72,13 +72,15 @@ export const Operations: FC<Props> = ({ position, operations }) => {
         const data: ICompletePosition = {
             id: position.id || "",
             count: position.count || 0,
-            isFinish: +operationIdx === (operations.length || 0) - 1 || false,
+            isFinish: operations[+operationIdx].isFinish,
             connected: position.connected || "",
             operation: operation,
         }
 
         await operationComplite(data)
-        mutate(`/api/v1/positions/${params.id}`)
+        console.log(params.id)
+
+        mutate(`/positions/${params.id}`)
     }
 
     return (

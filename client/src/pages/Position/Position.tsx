@@ -68,12 +68,12 @@ export default function Position() {
                         </Stack>
                     </Stack>
 
-                    <OperList operations={position.data.operations || []} />
+                    <OperList operations={position?.data?.operations || []} />
 
                     {!position.data.done && user?.role !== "master" ? (
                         <Operations
                             position={position.data}
-                            operations={position.data.operations}
+                            operations={position?.data?.operations || []}
                         />
                     ) : null}
                 </Paper>

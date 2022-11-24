@@ -47,11 +47,11 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 			id := uuid.New()
 			position, err := strconv.Atoi(row[Template.Position])
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert position. error: %w", err)
 			}
 			count, err := strconv.Atoi(row[Template.Count])
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert count. error: %w", err)
 			}
 
 			pos = append(pos, models.PositionDTO{

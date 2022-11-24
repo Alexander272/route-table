@@ -47,6 +47,7 @@ type Order interface {
 	Parse(context.Context, *excelize.File) error
 	Find(context.Context, string) ([]models.FindedOrder, error)
 	GetAll(context.Context) ([]models.GroupedOrder, error)
+	GetGrouped(context.Context) (models.UrgencyGroup, error)
 	GetWithPositions(context.Context, uuid.UUID) (models.OrderWithPositions, error)
 	Create(context.Context, models.OrderDTO) (uuid.UUID, error)
 	Update(context.Context, models.OrderDTO) error
@@ -74,9 +75,9 @@ type User interface {
 
 type Session interface {
 	SignIn(ctx context.Context, u models.SignIn) (models.User, string, error)
-	SingOut(ctx context.Context, userId string) error
+	SingOut(ctx context.Context, token string) error
 	Refresh(ctx context.Context, user models.UserWithRole) (models.User, string, error)
-	CheckSession(ctx context.Context, u models.UserWithRole, token string) (bool, error)
+	CheckSession(ctx context.Context, token string) (bool, error)
 	TokenParse(token string) (user models.UserWithRole, err error)
 }
 

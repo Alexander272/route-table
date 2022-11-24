@@ -41,13 +41,7 @@ func (h *Handler) signOut(c *gin.Context) {
 		return
 	}
 
-	user, err := h.services.Session.TokenParse(token)
-	if err != nil {
-		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
-		return
-	}
-
-	if err := h.services.Session.SingOut(c, user.Id.String()); err != nil {
+	if err := h.services.Session.SingOut(c, token); err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}
@@ -59,19 +53,19 @@ func (h *Handler) signOut(c *gin.Context) {
 func (h *Handler) refresh(c *gin.Context) {
 	token, err := c.Cookie(h.cookieName)
 	if err != nil {
-		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
+		response.NewErrorResponse(c, http.StatusForbidden, err.Error(), "user is not authorized")
 		return
 	}
 
 	user, err := h.services.Session.TokenParse(token)
 	if err != nil {
-		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
+		response.NewErrorResponse(c, http.StatusForbidden, err.Error(), "user is not authorized")
 		return
 	}
 
-	_, err = h.services.CheckSession(c, user, token)
+	_, err = h.services.CheckSession(c, token)
 	if err != nil {
-		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
+		response.NewErrorResponse(c, http.StatusForbidden, err.Error(), "user is not authorized")
 		return
 	}
 

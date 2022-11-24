@@ -52,7 +52,8 @@ func (r *RoleRepo) Create(ctx context.Context, role models.RoleDTO) (id uuid.UUI
 func (r *RoleRepo) Update(ctx context.Context, role models.RoleDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET title=$1, role=$2, operations=$3 WHERE id=$4", RolesTable)
 
-	_, err := r.db.Exec(query, role.Title, role.Role, role.Operations, role.Id)
+	operations := pq.Array(role.Operations)
+	_, err := r.db.Exec(query, role.Title, role.Role, operations, role.Id)
 	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}

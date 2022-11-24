@@ -86,6 +86,16 @@ func (s *UserService) Create(ctx context.Context, user models.UserDTO) (id uuid.
 }
 
 func (s *UserService) Update(ctx context.Context, user models.UserDTO) error {
+	salt, err := s.hasher.GenerateSalt()
+	if err != nil {
+		return fmt.Errorf("failed to create salt. error: %w", err)
+	}
+	pass, err := s.hasher.Hash(user.Password, salt)
+	if err != nil {
+		return fmt.Errorf("failed to hash password. error: %w", err)
+	}
+	user.Password = fmt.Sprintf("%s.%s", pass, salt)
+
 	if err := s.repo.Update(ctx, user); err != nil {
 		return fmt.Errorf("failed to update user. error: %w", err)
 	}

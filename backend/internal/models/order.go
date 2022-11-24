@@ -24,6 +24,12 @@ type GroupedOrder struct {
 	Orders   []Order   `json:"orders"`
 }
 
+type UrgencyGroup struct {
+	High   []GroupedOrder `json:"high"`
+	Middle []GroupedOrder `json:"middle"`
+	Low    []GroupedOrder `json:"low"`
+}
+
 type OrderWithPositions struct {
 	Id        uuid.UUID          `db:"id" json:"id"`
 	Number    string             `db:"number" json:"number"`

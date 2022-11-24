@@ -61,7 +61,7 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 		if len(row) < 18 {
 			continue
 		}
-		if row[Template.Count] == "поз. и кол-во в ед.заказа" || row[Template.Position] == "" {
+		if row[Template.Position] == "поз. и кол-во в ед.заказа" || row[Template.Position] == "" || row[Template.Count] == "" {
 			continue
 		}
 
@@ -72,11 +72,11 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 				parts := strings.Split(row[Template.Order], " ")
 				_, ok := orders[parts[2]]
 				if !ok {
-					date, err := time.Parse("02.01.2006", parts[4])
+					deadline, err := time.Parse("02.01.2006", row[Template.Deadline])
 					if err != nil {
 						return fmt.Errorf("failed to parse date of deadline. error: %w", err)
 					}
-					id, err := s.Create(ctx, models.OrderDTO{Number: parts[2], Deadline: row[Template.Deadline], Date: fmt.Sprintf("%d", date.Unix())})
+					id, err := s.Create(ctx, models.OrderDTO{Number: parts[2], Deadline: fmt.Sprintf("%d", deadline.Unix()), Date: parts[4]})
 					if err != nil {
 						return err
 					}
@@ -126,7 +126,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 	} else if time.Until(date) <= s.urgencyMid {
 		urgency = "Средняя"
 	} else {
-		urgency = "Низкая"
+		urgency = "Обычная"
 	}
 
 	orders = append(orders, models.GroupedOrder{
@@ -169,7 +169,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 			} else if time.Until(date) <= s.urgencyMid {
 				urgency = "Средняя"
 			} else {
-				urgency = "Низкая"
+				urgency = "Обычная"
 			}
 
 			orders = append(orders, models.GroupedOrder{
@@ -188,6 +188,27 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 	}
 
 	return orders, nil
+}
+
+func (s *OrderService) GetGrouped(ctx context.Context) (group models.UrgencyGroup, err error) {
+	orders, err := s.GetAll(ctx)
+	if err != nil {
+		return models.UrgencyGroup{}, err
+	}
+
+	for _, o := range orders {
+		if o.Urgency == "Высокая" {
+			group.High = append(group.High, o)
+		}
+		if o.Urgency == "Средняя" {
+			group.Middle = append(group.Middle, o)
+		}
+		if o.Urgency == "Обычная" {
+			group.Low = append(group.Low, o)
+		}
+	}
+
+	return group, nil
 }
 
 func (s *OrderService) GetWithPositions(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error) {

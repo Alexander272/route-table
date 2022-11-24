@@ -20,12 +20,13 @@ import (
 	"github.com/Alexander272/route-table/pkg/hasher"
 	"github.com/Alexander272/route-table/pkg/logger"
 	_ "github.com/lib/pq"
+	"github.com/subosito/gotenv"
 )
 
 func main() {
-	// if err := gotenv.Load("../.env"); err != nil {
-	// 	logger.Fatalf("error loading env variables: %s", err.Error())
-	// }
+	if err := gotenv.Load("../.env"); err != nil {
+		logger.Fatalf("error loading env variables: %s", err.Error())
+	}
 	conf, err := config.Init("configs")
 	if err != nil {
 		logger.Fatalf("error initializing configs: %s", err.Error())

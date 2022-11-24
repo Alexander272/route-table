@@ -20,7 +20,7 @@ func (m *Middleware) UserIdentity(c *gin.Context) {
 		return
 	}
 
-	isRefresh, err := m.services.Session.CheckSession(c, user, token)
+	isRefresh, err := m.services.Session.CheckSession(c, token)
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
 		return
@@ -51,7 +51,7 @@ func (m *Middleware) AccessForMaster(c *gin.Context) {
 
 func (m *Middleware) AccessForDisplay(c *gin.Context) {
 	role, _ := c.Get(m.RoleCtx)
-	if role != "display" {
+	if role != "display" && role != "master" {
 		response.NewErrorResponse(c, http.StatusForbidden, "role "+role.(string)+" access is denied", "access is denied")
 		return
 	}

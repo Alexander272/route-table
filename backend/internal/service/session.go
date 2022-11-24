@@ -66,7 +66,7 @@ func (s *SessionService) Refresh(ctx context.Context, user models.UserWithRole) 
 		RefreshToken: refreshToken,
 		Exp:          s.refreshTokenTTL,
 	}
-	if err := s.repo.Create(ctx, fmt.Sprintf("%s_refresh", user.Id), refreshData); err != nil {
+	if err := s.repo.Create(ctx, fmt.Sprintf("%s_refresh", accessToken), refreshData); err != nil {
 		return models.User{}, "", fmt.Errorf("failed to create session (refresh). error: %w", err)
 	}
 
@@ -78,13 +78,13 @@ func (s *SessionService) Refresh(ctx context.Context, user models.UserWithRole) 
 	return retUser, accessToken, nil
 }
 
-func (s *SessionService) SingOut(ctx context.Context, userId string) error {
-	err := s.repo.Remove(ctx, userId)
+func (s *SessionService) SingOut(ctx context.Context, token string) error {
+	err := s.repo.Remove(ctx, token)
 	if err != nil {
 		return fmt.Errorf("failed to delete session. error: %w", err)
 	}
 
-	err = s.repo.Remove(ctx, fmt.Sprintf("%s_refresh", userId))
+	err = s.repo.Remove(ctx, fmt.Sprintf("%s_refresh", token))
 	if err != nil {
 		return fmt.Errorf("failed to delete session (refresh). error: %w", err)
 	}
@@ -92,8 +92,8 @@ func (s *SessionService) SingOut(ctx context.Context, userId string) error {
 	return nil
 }
 
-func (s *SessionService) CheckSession(ctx context.Context, u models.UserWithRole, token string) (bool, error) {
-	refreshUser, err := s.repo.Get(ctx, fmt.Sprintf("%s_refresh", u.Id.String()))
+func (s *SessionService) CheckSession(ctx context.Context, token string) (bool, error) {
+	refreshUser, err := s.repo.Get(ctx, fmt.Sprintf("%s_refresh", token))
 	if err != nil {
 		return false, fmt.Errorf("failed to get session (refresh). error: %w", err)
 	}

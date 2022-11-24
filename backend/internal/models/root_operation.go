@@ -11,6 +11,7 @@ type RootOperation struct {
 	Gasket     string         `db:"gasket"`
 	StepNumber int            `db:"step_number"`
 	Connected  pq.StringArray `db:"connected"`
+	IsFinish   bool           `db:"is_finish"`
 }
 
 type RootOperationDTO struct {
@@ -18,4 +19,5 @@ type RootOperationDTO struct {
 	Title      string    `json:"title" binding:"required"`
 	Gasket     string    `json:"gasket" binding:"required"`
 	StepNumber int       `json:"stepNumber"`
+	IsFinish   bool      `json:"isFinish"`
 }

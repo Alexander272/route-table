@@ -14,6 +14,7 @@ func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
 	{
 		orders.POST("/parse", h.middleware.AccessForMaster, h.ordersParse)
 		orders.GET("/", h.middleware.AccessForDisplay, h.getOrders)
+		orders.GET("/group", h.middleware.AccessForDisplay, h.getGroup)
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
 	}
@@ -55,6 +56,15 @@ func (h *Handler) getOrders(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
+}
+
+func (h *Handler) getGroup(c *gin.Context) {
+	orders, err := h.services.Order.GetGrouped(c)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+	c.JSON(http.StatusOK, response.DataResponse{Data: orders})
 }
 
 func (h *Handler) getOrder(c *gin.Context) {

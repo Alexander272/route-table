@@ -20,7 +20,7 @@ func NewOperationRepo(db *sqlx.DB) *OperationRepo {
 }
 
 func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (operations []models.Operation, err error) {
-	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number, is_finish FROM %s INNER JOIN %s ON operation_id=%s.id 
 		WHERE position_id=$1 AND array[%s.id] <@ $2 ORDER BY step_number`,
 		OperationsTable, OperationsTable, RootOperationTable, RootOperationTable, RootOperationTable)
 

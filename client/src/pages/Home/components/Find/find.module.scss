@@ -54,6 +54,9 @@
         transition: all .3s ease;
         padding: 8px 12px;
         cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
         &:hover {
             background-color: var(--gray);
@@ -61,6 +64,22 @@
 
         &.active {
             background-color: var(--secondary-color);
+        }
+
+        .chip {
+            width: 100px;
+            text-align: center;
+            color: var(--white);
+            border-radius: 30px;
+            padding: 2px;
+
+            &.success {
+                background-color: #2e7d32;
+            }
+
+            &.work {
+                background-color: var(--primary-color);
+            }
         }
     }
 

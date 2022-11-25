@@ -7,7 +7,7 @@ import classes from "./header.module.scss"
 type Props = {}
 
 export const Header: FC<Props> = () => {
-    const { setUser } = useContext(AuthContext)
+    const { user, setUser } = useContext(AuthContext)
 
     const logoutHandler = async () => {
         try {
@@ -39,6 +39,12 @@ export const Header: FC<Props> = () => {
                     <Link to='/' className={classes.profile}>
                         <img src='/image/home.svg' alt='home' width='32' height='32' />
                     </Link>
+
+                    {user?.role === "master" || user?.role === "display" ? (
+                        <Link to='/orders/group' className={classes.profile}>
+                            <img src='/image/list.svg' alt='orders' width='30' height='30' />
+                        </Link>
+                    ) : null}
 
                     <div className={classes.profile} onClick={logoutHandler}>
                         <img src='/image/logout.svg' alt='log-out' width='30' height='30' />

@@ -30,7 +30,7 @@ export const MyRoutes = () => {
                     <Route path='/orders/group' element={<OrdersGroup />} />
                 </Route>
 
-                <Route path='*' element={<div />} />
+                <Route path='*' element={<div>Страница не найдена</div>} />
             </Routes>
         </Suspense>
     )

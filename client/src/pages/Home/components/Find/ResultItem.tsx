@@ -20,7 +20,9 @@ export const ResultItem: FC<Props> = ({ order, index, selectHandler, selected })
             onClick={() => selectHandler(order)}
         >
             <span>{order.number}</span>
-            <span></span>
+            <span className={[classes.chip, order.done ? classes.success : classes.work].join(" ")}>
+                {order.done ? "Готов" : "В работе"}
+            </span>
         </li>
     )
 }

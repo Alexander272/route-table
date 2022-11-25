@@ -43,6 +43,8 @@ export const Operations: FC<Props> = ({ position, operations }) => {
         }
     }, [operations])
 
+    if (!operations.length) return null
+
     const countHandler = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCount(event.target.value)
     }
@@ -78,8 +80,6 @@ export const Operations: FC<Props> = ({ position, operations }) => {
         }
 
         await operationComplite(data)
-        console.log(params.id)
-
         mutate(`/positions/${params.id}`)
     }
 
@@ -100,7 +100,7 @@ export const Operations: FC<Props> = ({ position, operations }) => {
                     size='small'
                     onChange={operationHandler}
                 >
-                    {operations?.map((o, i) => {
+                    {/* {operations?.map((o, i) => {
                         if (!o.done) {
                             return (
                                 <MenuItem key={o.id} value={i}>
@@ -108,7 +108,12 @@ export const Operations: FC<Props> = ({ position, operations }) => {
                                 </MenuItem>
                             )
                         } else return null
-                    })}
+                    })} */}
+                    {operations?.map((o, i) => (
+                        <MenuItem key={o.id} value={i}>
+                            {o.title}
+                        </MenuItem>
+                    ))}
                 </Select>
             </FormControl>
             <TextField

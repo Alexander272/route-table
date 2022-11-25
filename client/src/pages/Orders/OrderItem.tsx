@@ -8,8 +8,13 @@ type Props = {
 }
 
 export const OrderItem: FC<Props> = ({ order }) => {
+    let urgency = "high"
+    if (order.urgency === "Высокая") urgency = "high"
+    else if (order.urgency === "Средняя") urgency = "middle"
+    else urgency = ""
+
     return (
-        <div className={classes.item}>
+        <div className={[classes.item, urgency ? classes[urgency] : null].join(" ")}>
             <Stack alignItems='center' spacing={1} sx={{ marginBottom: 1 }}>
                 <Typography color='primary' variant='h6'>
                     Дата отгрузки {order.deadline}

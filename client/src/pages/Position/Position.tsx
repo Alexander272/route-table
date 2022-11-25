@@ -15,7 +15,7 @@ export default function Position() {
     const { data: position } = useSWR<{ data: IPosition }>(`/positions/${params.id}`, fetcher)
 
     return (
-        <Container sx={{ margin: "auto" }}>
+        <Container sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
             {!position && (
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <CircularProgress />
@@ -25,9 +25,11 @@ export default function Position() {
                 <Paper
                     elevation={3}
                     sx={{
+                        marginTop: 2,
                         borderRadius: 4,
                         paddingX: [2, 4],
                         paddingY: [2, 3],
+                        flexGrow: 1,
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -73,7 +75,7 @@ export default function Position() {
                     {!position.data.done && user?.role !== "master" ? (
                         <Operations
                             position={position.data}
-                            operations={position?.data?.operations || []}
+                            operations={position?.data?.operations.filter(o => !o.done) || []}
                         />
                     ) : null}
                 </Paper>

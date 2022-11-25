@@ -100,6 +100,8 @@ type Deps struct {
 	RefreshTokenTTL time.Duration
 	UrgencyHigh     time.Duration
 	UrgencyMid      time.Duration
+	QueryDelay      time.Duration
+	OrdersTerm      time.Duration
 }
 
 func NewServices(deps Deps) *Services {
@@ -107,7 +109,7 @@ func NewServices(deps Deps) *Services {
 	reason := NewReasonService(deps.Repos.Reason)
 	operation := NewOperationService(deps.Repos.Operation, reason)
 	position := NewPositionService(deps.Repos.Position, operation, rootOperation)
-	order := NewOrderService(deps.Repos.Order, position, deps.UrgencyHigh, deps.UrgencyMid)
+	order := NewOrderService(deps.Repos.Order, position, deps.UrgencyHigh, deps.UrgencyMid, deps.OrdersTerm, deps.QueryDelay)
 	role := NewRoleService(deps.Repos.Role)
 	user := NewUserService(deps.Repos.User, deps.Hasher, role)
 	session := NewSessionService(deps.Repos.Session, user, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)

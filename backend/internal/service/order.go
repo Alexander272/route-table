@@ -20,14 +20,20 @@ type OrderService struct {
 	position    *PositionService
 	urgencyHigh time.Duration
 	urgencyMid  time.Duration
+	ordersTerm  time.Duration
+	queryDelay  time.Duration
+	queryTime   time.Time
 }
 
-func NewOrderService(repo repository.Order, position *PositionService, urgencyHigh time.Duration, urgencyMid time.Duration) *OrderService {
+func NewOrderService(repo repository.Order, position *PositionService, urgencyHigh, urgencyMid, ordersTerm, queryDelay time.Duration) *OrderService {
 	return &OrderService{
 		repo:        repo,
 		position:    position,
 		urgencyHigh: urgencyHigh,
 		urgencyMid:  urgencyMid,
+		ordersTerm:  ordersTerm,
+		queryDelay:  queryDelay,
+		queryTime:   time.Now(),
 	}
 }
 
@@ -187,6 +193,13 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 		}
 	}
 
+	if time.Since(s.queryTime) >= s.queryDelay {
+		s.queryTime = time.Now()
+		if err := s.DeleteOld(ctx); err != nil {
+			logger.Error(err)
+		}
+	}
+
 	return orders, nil
 }
 
@@ -238,6 +251,16 @@ func (s *OrderService) Create(ctx context.Context, order models.OrderDTO) (id uu
 func (s *OrderService) Update(ctx context.Context, order models.OrderDTO) error {
 	if err := s.repo.Update(ctx, order); err != nil {
 		return fmt.Errorf("failed to update order. error: %w", err)
+	}
+	return nil
+}
+
+func (s *OrderService) DeleteOld(ctx context.Context) error {
+	logger.Info("delete old order")
+
+	term := time.Now().Add(-s.ordersTerm)
+	if err := s.repo.DeleteOld(ctx, term); err != nil {
+		return fmt.Errorf("failed to delete old order. error: %w", err)
 	}
 	return nil
 }

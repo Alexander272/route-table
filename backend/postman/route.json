@@ -1,0 +1,602 @@
+{
+	"info": {
+		"_postman_id": "5dbb8473-07f4-42b5-a308-ab74e9d09237",
+		"name": "route",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17769876"
+	},
+	"item": [
+		{
+			"name": "root operations",
+			"item": [
+				{
+					"name": "get",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/root-operations",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"root-operations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"10 Покраска\",\n    \"gasket\": \"СНП\",\n    \"stepNumber\": 10,\n    \"isFinish\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/root-operations",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"root-operations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"\",\n    \"gasket\": \"\",\n    \"stepNumber\": 0,\n    \"isFinish\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/root-operations/{{root_operation_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"root-operations",
+								"{{root_operation_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/root-operations/{{root_operation_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"root-operations",
+								"{{root_operation_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "orders",
+			"item": [
+				{
+					"name": "parse",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "order",
+									"type": "file",
+									"src": "/home/martynov/Projects/Обработка для Маршр листов.xlsx"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/orders/parse",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"parse"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "find orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/orders/number/23",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"number",
+								"23"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get with positions",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "get all",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "67230944",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "master",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get group",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/orders/group",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"group"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "positions",
+			"item": [
+				{
+					"name": "get by id",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "67230944",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "master",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/positions/a69fd701-e209-4797-849c-b9281f383529",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"positions",
+								"a69fd701-e209-4797-849c-b9281f383529"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "operations",
+			"item": [
+				{
+					"name": "complete operation",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"df848341-fe53-4118-a5eb-001828f933b9\",\n    \"count\": 15,\n    \"isFinish\": false,\n    \"connected\": \"df848341-fe53-4118-a5eb-001828f933b9\",\n    \"operation\": {\n        \"id\": \"df848341-fe53-4118-a5eb-001828f933b9\",\n        \"done\": false,\n        \"remainder\": 5,\n        \"count\": 4,\n        \"reason\": \"reason\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/operations/{{operation_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"operations",
+								"{{operation_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "roles",
+			"item": [
+				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/roles",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Мастер\",\n    \"role\": \"master\",\n    \"operations\": [\n        \"df848341-fe53-4118-a5eb-001828f933b9\",\n        \"6242b0f0-6d00-4117-920f-3cef9aeca14e\",\n        \"73fee151-b708-4854-a051-0108604058e5\",\n        \"5d47fd36-6c29-4981-8ac8-031c56d0b800\",\n        \"c953e8a2-db0a-4426-ac91-78b33c653563\",\n        \"d63c90d7-dbb8-457d-b281-7d0c11a68f4f\",\n        \"220d27cc-bc40-4dc7-bbb7-aa0ec7486856\",\n        \"9189d221-4e7d-4756-8869-23d5cc6cf644\",\n        \"0cde674b-1a6f-4441-8965-58332833544b\",\n        \"c18f542c-2981-4c23-a1cf-36bee4da1966\",\n        \"55fa8ee1-229f-4462-b350-9bb871ea7cba\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/roles",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"\",\n    \"role\": \"\",\n    \"operations\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/roles/{{role_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								"{{role_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/roles/{{role_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"roles",
+								"{{role_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"login\": \"master\",\n    \"password\": \"67230944\",\n    \"roleId\": \"2f02df97-3093-488f-9a7b-6e9cc1e32344\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"login\": \"\",\n    \"password\": \"\",\n    \"roleId\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/users/{{user_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"{{user_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/users/{{user_id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"users",
+								"{{user_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "sign-in",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"login\": \"master\",\n    \"password\": \"67230944\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/sign-in",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"sign-in"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sign-out",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NjkwOTUyOTIsInJvbGUiOnsiaWQiOiIyZjAyZGY5Ny0zMDkzLTQ4OGYtOWE3Yi02ZTljYzFlMzIzNDQiLCJ0aXRsZSI6ItCc0LDRgdGC0LXRgCIsInJvbGUiOiJtYXN0ZXIiLCJvcGVyYXRpb25zIjpbIjBjZGU2NzRiLTFhNmYtNDQ0MS04OTY1LTU4MzMyODMzNTQ0YiIsIjIyMGQyN2NjLWJjNDAtNGRjNy1iYmI3LWFhMGVjNzQ4Njg1NiIsIjU1ZmE4ZWUxLTIyOWYtNDQ2Mi1iMzUwLTliYjg3MWVhN2NiYSIsIjVkNDdmZDM2LTZjMjktNDk4MS04YWM4LTAzMWM1NmQwYjgwMCIsIjYyNDJiMGYwLTZkMDAtNDExNy05MjBmLTNjZWY5YWVjYTE0ZSIsIjczZmVlMTUxLWI3MDgtNDg1NC1hMDUxLTAxMDg2MDQwNThlNSIsIjkxODlkMjIxLTRlN2QtNDc1Ni04ODY5LTIzZDVjYzZjZjY0NCIsImMxOGY1NDJjLTI5ODEtNGMyMy1hMWNmLTM2YmVlNGRhMTk2NiIsImM5NTNlOGEyLWRiMGEtNDQyNi1hYzkxLTc4YjMzYzY1MzU2MyIsImQ2M2M5MGQ3LWRiYjgtNDU3ZC1iMjgxLTdkMGMxMWE2OGY0ZiIsImRmODQ4MzQxLWZlNTMtNDExOC1hNWViLTAwMTgyOGY5MzNiOSJdfSwidXNlcklkIjoiNjM3M2JmN2YtY2YxZC00ZDc1LWFmMmMtYzc3NjNiYjZjZjA2In0.qunS2UWbpAWSk6THXVJDVNv4usrsWnTlYm0R4nXOpIA\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/auth/sign-out",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"sign-out"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "67230944",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "master",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NjkwOTU3NzgsInJvbGUiOnsiaWQiOiIyZjAyZGY5Ny0zMDkzLTQ4OGYtOWE3Yi02ZTljYzFlMzIzNDQiLCJ0aXRsZSI6ItCc0LDRgdGC0LXRgCIsInJvbGUiOiJtYXN0ZXIiLCJvcGVyYXRpb25zIjpbIjBjZGU2NzRiLTFhNmYtNDQ0MS04OTY1LTU4MzMyODMzNTQ0YiIsIjIyMGQyN2NjLWJjNDAtNGRjNy1iYmI3LWFhMGVjNzQ4Njg1NiIsIjU1ZmE4ZWUxLTIyOWYtNDQ2Mi1iMzUwLTliYjg3MWVhN2NiYSIsIjVkNDdmZDM2LTZjMjktNDk4MS04YWM4LTAzMWM1NmQwYjgwMCIsIjYyNDJiMGYwLTZkMDAtNDExNy05MjBmLTNjZWY5YWVjYTE0ZSIsIjczZmVlMTUxLWI3MDgtNDg1NC1hMDUxLTAxMDg2MDQwNThlNSIsIjkxODlkMjIxLTRlN2QtNDc1Ni04ODY5LTIzZDVjYzZjZjY0NCIsImMxOGY1NDJjLTI5ODEtNGMyMy1hMWNmLTM2YmVlNGRhMTk2NiIsImM5NTNlOGEyLWRiMGEtNDQyNi1hYzkxLTc4YjMzYzY1MzU2MyIsImQ2M2M5MGQ3LWRiYjgtNDU3ZC1iMjgxLTdkMGMxMWE2OGY0ZiIsImRmODQ4MzQxLWZlNTMtNDExOC1hNWViLTAwMTgyOGY5MzNiOSJdfSwidXNlcklkIjoiNjM3M2JmN2YtY2YxZC00ZDc1LWFmMmMtYzc3NjNiYjZjZjA2In0.4ufNoC1e6IJ9NrfkG2VMkx3yMPOC3OOeWztmdh3vUXI\"",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{url}}/auth/refresh",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "localhost:8080/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "root_operation_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

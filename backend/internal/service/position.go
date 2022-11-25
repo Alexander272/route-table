@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
-	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
@@ -93,7 +93,6 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 }
 
 func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (position models.Position, err error) {
-	logger.Debug(enabled)
 	position, err = s.repo.Get(ctx, positionId)
 	if err != nil {
 		return models.Position{}, fmt.Errorf("failed to get position. error: %w", err)
@@ -152,22 +151,36 @@ func (s *PositionService) Complete(ctx context.Context, position models.Position
 
 func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
 	if position.IsFinish {
-		op1, op2, err := s.operation.Check(ctx, position.Id, position.Connected, position.Operation.Done, position.Operation.Remainder)
-		if err != nil {
-			return err
+		var op1, op2 models.OperationDTO
+		if position.Connected != uuid.Nil {
+			var err error
+			op1, op2, err = s.operation.Check(ctx, position.Id, position.Connected, position.Operation.Done, position.Operation.Remainder)
+			if err != nil {
+				return err
+			}
+
+			if err := s.operation.Complete(ctx, op2); err != nil {
+				return err
+			}
+			if op2.Done {
+				if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done}); err != nil {
+					return err
+				}
+			}
+		} else {
+			op1 = models.OperationDTO{
+				Id:        position.Operation.Id,
+				Done:      position.Operation.Done,
+				Remainder: position.Operation.Remainder,
+				Date:      time.Now().Format("02.01.2006 15:04"),
+			}
 		}
+
 		if err := s.operation.Complete(ctx, op1); err != nil {
 			return err
 		}
-		if err := s.operation.Complete(ctx, op2); err != nil {
-			return err
-		}
-
 		if op1.Done {
 			if err := s.Complete(ctx, models.PositionDTO{Id: position.Id, Done: op1.Done}); err != nil {
-				return err
-			}
-			if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done}); err != nil {
 				return err
 			}
 		}

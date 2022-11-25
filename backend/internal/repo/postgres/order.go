@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/google/uuid"
@@ -38,7 +39,7 @@ func (r *OrderRepo) GetAll(ctx context.Context) (orders []models.Order, err erro
 }
 
 func (r *OrderRepo) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
-	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE number LIKE $1 LIMIT 5", OrdersTable)
+	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE number LIKE $1 ORDER BY done LIMIT 5", OrdersTable)
 
 	if err := r.db.Select(&orders, query, "%"+number+"%"); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)
@@ -66,6 +67,15 @@ func (r *OrderRepo) Update(ctx context.Context, order models.OrderDTO) error {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
 
+	return nil
+}
+
+func (r *OrderRepo) DeleteOld(ctx context.Context, term time.Time) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE complited<$1", OrdersTable)
+
+	if _, err := r.db.Exec(query, term.Unix()); err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
 	return nil
 }
 

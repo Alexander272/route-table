@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
+	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -84,6 +86,22 @@ func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) 
 	_, err := r.db.Exec(query, position.Done, position.Id)
 	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+
+	var finish models.FinishOrder
+	query = fmt.Sprintf(`SELECT order_id, (SELECT count(case when done=false then done end)=0 as is_finish
+		FROM %s WHERE order_id=pos.order_id) FROM %s as pos WHERE id=$1`, PositionsTable, PositionsTable)
+	if err := r.db.Get(&finish, query, position.Id); err != nil {
+		return fmt.Errorf("failed to execute query finish. error: %w", err)
+	}
+	logger.Debug(finish)
+
+	if finish.IsFinish {
+		query = fmt.Sprintf(`UPDATE %s SET done=$1, complited=$2 WHERE id=$3`, OrdersTable)
+		_, err := r.db.Exec(query, finish.IsFinish, time.Now().Unix(), finish.Id)
+		if err != nil {
+			return fmt.Errorf("failed to execute query order. error: %w", err)
+		}
 	}
 
 	return nil

@@ -11,7 +11,7 @@ cache:
 
 auth:
     accessTokenTTL: 20m
-    refreshTokenTTL: 12h
+    refreshTokenTTL: 24h
     limitAuthTTL: 30m
     countAttempt: 5
     secure: false
@@ -37,3 +37,7 @@ limiter:
 urgency:
     high: 72h
     middle: 120h
+
+order:
+    delay: 5m
+    term: 336h

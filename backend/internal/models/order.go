@@ -44,3 +44,8 @@ type OrderDTO struct {
 	Date     string    `json:"date"`
 	Deadline string    `json:"deadline"`
 }
+
+type FinishOrder struct {
+	Id       uuid.UUID `db:"order_id"`
+	IsFinish bool      `db:"is_finish"`
+}

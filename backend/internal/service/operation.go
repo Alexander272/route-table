@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -109,9 +108,9 @@ func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, 
 	if err != nil {
 		return op1, op2, fmt.Errorf("failed to get operation. error: %w", err)
 	}
-	if !operations1[len(operations1)-2].Done || !operations2[len(operations2)-2].Done {
-		return op1, op2, errors.New("connected operation not completed")
-	}
+	// if !operations1[len(operations1)-2].Done || !operations2[len(operations2)-2].Done {
+	// 	return op1, op2, errors.New("connected operation not completed")
+	// }
 	op1 = models.OperationDTO{
 		Id:        operations1[len(operations1)-1].Id,
 		Done:      done,

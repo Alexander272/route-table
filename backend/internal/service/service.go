@@ -55,6 +55,8 @@ type Order interface {
 }
 
 type Reason interface {
+	Get(context.Context) ([]models.PosWithReason, error)
+	GetFile(context.Context) (*excelize.File, error)
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
 }
 

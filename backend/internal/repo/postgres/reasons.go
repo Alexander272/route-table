@@ -17,6 +17,22 @@ func NewReasonRepo(db *sqlx.DB) *ReasonRepo {
 	return &ReasonRepo{db: db}
 }
 
+func (r *ReasonRepo) Get(ctx context.Context) (reasons []models.PosWithReason, err error) {
+	query := fmt.Sprintf(`SELECT %s.title AS pos_title, %s.title AS op_title, %s.date, value FROM %s
+		INNER JOIN %s ON %s.operation_id = %s.id
+		INNER JOIN %s ON %s.operation_id = %s.id
+		INNER JOIN %s ON position_id = %s.id`,
+		PositionsTable, RootOperationTable, ReasonsTable, ReasonsTable,
+		OperationsTable, ReasonsTable, OperationsTable,
+		RootOperationTable, OperationsTable, RootOperationTable,
+		PositionsTable, PositionsTable)
+
+	if err := r.db.Select(&reasons, query); err != nil {
+		return nil, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return reasons, nil
+}
+
 func (r *ReasonRepo) Create(ctx context.Context, reason models.ReasonDTO) (id uuid.UUID, err error) {
 	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, date, value) VALUES ($1, $2, $3, $4)", ReasonsTable)
 	id = uuid.New()

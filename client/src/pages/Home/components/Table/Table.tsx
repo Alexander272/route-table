@@ -64,7 +64,11 @@ export const OrderTable: FC<Props> = () => {
 
     const filterHandler = useCallback(
         (search: string) => {
-            setPositions(order?.data.positions.filter(p => p.title.includes(search)) || [])
+            setPositions(
+                order?.data.positions.filter(
+                    p => p.title.includes(search) || p.position.toString() === search
+                ) || []
+            )
         },
         [order]
     )

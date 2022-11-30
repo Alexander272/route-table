@@ -2,6 +2,7 @@ import React, { FC, useContext } from "react"
 import { Link } from "react-router-dom"
 import { AuthContext } from "../../context/AuthProvider"
 import { signOut } from "../../service/auth"
+import { getReason } from "../../service/reason"
 import classes from "./header.module.scss"
 
 type Props = {}
@@ -14,6 +15,23 @@ export const Header: FC<Props> = () => {
             await signOut()
             setUser(null)
         } catch (error) {}
+    }
+
+    const saveHandler = async () => {
+        try {
+            const res = await getReason()
+            const blob = new Blob([res.data])
+
+            const href = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.href = href
+            link.download = res.headers["content-disposition"]?.split("=")[1] || ""
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     return (
@@ -36,6 +54,12 @@ export const Header: FC<Props> = () => {
                 </a>
 
                 <div className={classes.nav}>
+                    {user?.role === "master" || user?.role === "display" ? (
+                        <p className={classes.profile} onClick={saveHandler}>
+                            <img src='/image/download.svg' alt='download' width='28' height='28' />
+                        </p>
+                    ) : null}
+
                     <Link to='/' className={classes.profile}>
                         <img src='/image/home.svg' alt='home' width='32' height='32' />
                     </Link>

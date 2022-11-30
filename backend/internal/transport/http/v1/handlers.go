@@ -36,6 +36,7 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitPositionsRoutes(v1)
 		h.InitOperationRoutes(v1)
 		h.InitRoleRoutes(v1)
+		h.InitReasonsRoutes(v1)
 		h.InitUsersRoutes(v1)
 		h.InitAuthRoutes(v1)
 		v1.GET("/", h.notImplemented)

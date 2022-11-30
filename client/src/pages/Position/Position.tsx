@@ -15,7 +15,9 @@ export default function Position() {
     const { data: position } = useSWR<{ data: IPosition }>(`/positions/${params.id}`, fetcher)
 
     return (
-        <Container sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
+        <Container
+            sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
             {!position && (
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <CircularProgress />

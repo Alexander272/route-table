@@ -1,4 +1,4 @@
-import { Box, Chip, CircularProgress, Stack, Typography } from "@mui/material"
+import { Box, CircularProgress, Stack, Typography } from "@mui/material"
 import React, { FC } from "react"
 import { IGroupedOrder } from "../../types/order"
 import classes from "./orders.module.scss"
@@ -16,28 +16,9 @@ export const OrderItem: FC<Props> = ({ order }) => {
     return (
         <div className={[classes.item, urgency ? classes[urgency] : null].join(" ")}>
             <Stack alignItems='center' spacing={1} sx={{ marginBottom: 1 }}>
-                <Typography color='primary' variant='h6'>
+                <Typography color='primary' variant='h5' sx={{ fontWeight: 700 }}>
                     Дата отгрузки {order.deadline}
                 </Typography>
-
-                <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={{ xs: 0, sm: 2 }}
-                    alignItems='center'
-                >
-                    <Typography>Срочность</Typography>
-                    <Chip
-                        label={order.urgency}
-                        sx={{ width: "90px" }}
-                        color={
-                            order.urgency === "Высокая"
-                                ? "error"
-                                : order.urgency === "Средняя"
-                                ? "primary"
-                                : "success"
-                        }
-                    />
-                </Stack>
             </Stack>
 
             {order.orders.map(o => (
@@ -46,13 +27,16 @@ export const OrderItem: FC<Props> = ({ order }) => {
                     direction={{ xs: "column", sm: "row" }}
                     spacing={{ xs: 0, sm: 2 }}
                     alignItems='center'
+                    justifyContent='space-between'
                     sx={{
                         paddingY: "4px",
                         borderBottom: "1px solid var(--primary-color)",
                     }}
                 >
-                    <Stack spacing={0} alignItems='center'>
-                        <Typography color='primary'>Заказ №{o.number}</Typography>
+                    <Stack spacing={0}>
+                        <Typography variant='h6' color='primary' sx={{ fontWeight: 700 }}>
+                            Заказ №{o.number}
+                        </Typography>
                         <Typography>От {o.date}</Typography>
                     </Stack>
 

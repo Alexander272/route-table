@@ -52,6 +52,7 @@ type Operation interface {
 }
 
 type Reason interface {
+	Get(context.Context) ([]models.PosWithReason, error)
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
 	Delete(context.Context, models.ReasonDTO) error
 }

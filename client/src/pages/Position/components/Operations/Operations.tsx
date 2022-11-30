@@ -62,6 +62,7 @@ export const Operations: FC<Props> = ({ position, operations }) => {
 
     const submitHandler = async () => {
         if (+count > remainder || +count < 1) return
+        if (+count < remainder && reason.trim() === "") return
 
         const operation: ICompleteOperation = {
             id: operations[+operationIdx].id || "",

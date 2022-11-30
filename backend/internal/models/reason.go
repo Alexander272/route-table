@@ -14,3 +14,10 @@ type Reason struct {
 	Date  string    `json:"date"`
 	Value string    `json:"value"`
 }
+
+type PosWithReason struct {
+	PosTitle string `db:"pos_title"`
+	OpTitle  string `db:"op_title"`
+	Date     string `db:"date"`
+	Value    string `db:"value"`
+}

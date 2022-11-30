@@ -56,8 +56,8 @@ export default function OrdersGroup() {
                 </div>
             )}
             {res?.data.middle && (
-                <div className={`${classes.column} ${classes["column-middle"]}`}>
-                    <Masonry columns={2} spacing={2}>
+                <div className={classes.column}>
+                    <Masonry columns={columns[1]} spacing={2}>
                         {res?.data.middle.map(o => (
                             <OrderItem key={o.id} order={o} />
                         ))}

@@ -1,15 +1,19 @@
 import { FC, useContext, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
 import { Alert, Button, Snackbar } from "@mui/material"
-import { ISignIn } from "../../../../types/user"
+import { ISignIn, IUser } from "../../../../types/user"
 import { signIn } from "../../../../service/auth"
 import { InputBase } from "../../../../components/Input/InputBase"
 import { AuthContext } from "../../../../context/AuthProvider"
 import classes from "./forms.module.scss"
+import useSWR from "swr"
+import { fetcher } from "../../../../service/read"
 
 type Props = {}
 
 export const SignInForm: FC<Props> = () => {
+    const { data: res } = useSWR<{ data: IUser[] }>("/users", fetcher)
+
     const {
         register,
         handleSubmit,
@@ -66,10 +70,14 @@ export const SignInForm: FC<Props> = () => {
             <h2 className={classes.title}>Вход</h2>
             <div className={classes.contents}>
                 <div className={classes.input}>
-                    <InputBase
-                        placeholder='Логин'
-                        register={register("login", { required: true })}
-                    />
+                    <select className={classes.select} {...register("login", { required: true })}>
+                        <option value={"логин"}>Логин</option>
+                        {res?.data.map(u => (
+                            <option key={u.id} value={u.login}>
+                                {u.login}
+                            </option>
+                        ))}
+                    </select>
                     {errors.login && (
                         <p className={classes["input-error"]}>Поле логин не может быть пустым</p>
                     )}

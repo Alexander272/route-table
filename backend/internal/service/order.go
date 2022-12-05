@@ -119,6 +119,10 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 		return nil, fmt.Errorf("failed to get orders. error: %w", err)
 	}
 
+	if len(o) == 0 {
+		return []models.GroupedOrder{}, nil
+	}
+
 	groupId := uuid.New()
 	deadline, err := strconv.Atoi(o[0].Deadline)
 	if err != nil {

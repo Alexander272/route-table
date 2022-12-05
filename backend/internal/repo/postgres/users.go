@@ -33,7 +33,7 @@ func (r *UserRepo) Get(ctx context.Context, u models.SignIn) (user models.UserWi
 }
 
 func (r *UserRepo) GetAll(ctx context.Context) (users []models.User, err error) {
-	query := fmt.Sprintf("SELECT %s.id, login, role FROM %s INNER JOIN %s ON role_id=%s.id",
+	query := fmt.Sprintf("SELECT %s.id, login, role FROM %s INNER JOIN %s ON role_id=%s.id ORDER BY login DESC",
 		UsersTable, UsersTable, RolesTable, RolesTable)
 
 	if err := r.db.Select(&users, query); err != nil {

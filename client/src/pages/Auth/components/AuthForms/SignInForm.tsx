@@ -1,6 +1,6 @@
 import { FC, useContext, useState } from "react"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { Alert, Button, Snackbar } from "@mui/material"
+import { Controller, SubmitHandler, useForm } from "react-hook-form"
+import { Alert, Button, MenuItem, Select, Snackbar, InputBase as Input } from "@mui/material"
 import { ISignIn, IUser } from "../../../../types/user"
 import { signIn } from "../../../../service/auth"
 import { InputBase } from "../../../../components/Input/InputBase"
@@ -16,9 +16,10 @@ export const SignInForm: FC<Props> = () => {
 
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
-    } = useForm<ISignIn>()
+    } = useForm<ISignIn>({ defaultValues: { login: "login" } })
 
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -27,6 +28,7 @@ export const SignInForm: FC<Props> = () => {
     const { setUser } = useContext(AuthContext)
 
     const signInHandler: SubmitHandler<ISignIn> = async data => {
+        if (data.login === "login") return
         setError("")
         try {
             setLoading(true)
@@ -70,14 +72,43 @@ export const SignInForm: FC<Props> = () => {
             <h2 className={classes.title}>Вход</h2>
             <div className={classes.contents}>
                 <div className={classes.input}>
-                    <select className={classes.select} {...register("login", { required: true })}>
-                        <option value={"логин"}>Логин</option>
+                    <Controller
+                        control={control}
+                        name='login'
+                        render={({ field }) => (
+                            <Select
+                                value={field.value}
+                                onChange={field.onChange}
+                                size='small'
+                                sx={{
+                                    width: "100%",
+                                    border: "2px solid var(--secondary-color)",
+                                    borderRadius: "50px",
+                                    padding: "7px 16px 2px",
+                                }}
+                                input={<Input sx={{ padding: 0 }} />}
+                            >
+                                <MenuItem value='login' disabled>
+                                    <em>Логин</em>
+                                </MenuItem>
+                                {res?.data.map(u => (
+                                    <MenuItem key={u.id} value={u.login}>
+                                        {u.login}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        )}
+                    />
+                    {/* <select className={classes.select} {...register("login", { required: true })}>
+                        <option value={"логин"} disabled>
+                            Логин
+                        </option>
                         {res?.data.map(u => (
                             <option key={u.id} value={u.login}>
                                 {u.login}
                             </option>
                         ))}
-                    </select>
+                    </select> */}
                     {errors.login && (
                         <p className={classes["input-error"]}>Поле логин не может быть пустым</p>
                     )}

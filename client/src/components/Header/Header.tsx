@@ -1,3 +1,4 @@
+import { Tooltip } from "@mui/material"
 import React, { FC, useContext } from "react"
 import { Link } from "react-router-dom"
 import { AuthContext } from "../../context/AuthProvider"
@@ -52,29 +53,42 @@ export const Header: FC<Props> = () => {
                 {user && (
                     <div className={classes.nav}>
                         {user?.role === "master" ? (
-                            <p className={classes.profile} onClick={saveHandler}>
-                                <img
-                                    src='/image/download.svg'
-                                    alt='download'
-                                    width='28'
-                                    height='28'
-                                />
-                            </p>
+                            <Tooltip title='Список причин'>
+                                <p className={classes.profile} onClick={saveHandler}>
+                                    <img
+                                        src='/image/download.svg'
+                                        alt='download'
+                                        width='28'
+                                        height='28'
+                                    />
+                                </p>
+                            </Tooltip>
                         ) : null}
 
-                        <Link to='/' className={classes.profile}>
-                            <img src='/image/home.svg' alt='home' width='32' height='32' />
-                        </Link>
+                        <Tooltip title='Главная'>
+                            <Link to='/' className={classes.profile}>
+                                <img src='/image/home.svg' alt='home' width='32' height='32' />
+                            </Link>
+                        </Tooltip>
 
                         {user?.role === "master" || user?.role === "display" ? (
-                            <Link to='/orders/group' className={classes.profile}>
-                                <img src='/image/list.svg' alt='orders' width='30' height='30' />
-                            </Link>
+                            <Tooltip title='Список заказов'>
+                                <Link to='/orders/group' className={classes.profile}>
+                                    <img
+                                        src='/image/list.svg'
+                                        alt='orders'
+                                        width='30'
+                                        height='30'
+                                    />
+                                </Link>
+                            </Tooltip>
                         ) : null}
 
-                        <div className={classes.profile} onClick={logoutHandler}>
-                            <img src='/image/logout.svg' alt='log-out' width='30' height='30' />
-                        </div>
+                        <Tooltip title='Выход'>
+                            <div className={classes.profile} onClick={logoutHandler}>
+                                <img src='/image/logout.svg' alt='log-out' width='30' height='30' />
+                            </div>
+                        </Tooltip>
                     </div>
                 )}
             </div>

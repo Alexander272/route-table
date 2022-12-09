@@ -27,6 +27,7 @@ func (s *ReasonService) Get(ctx context.Context) (reasons []models.PosWithReason
 	return reasons, nil
 }
 
+// Создание файла с причинами
 func (s *ReasonService) GetFile(ctx context.Context) (file *excelize.File, err error) {
 	file = excelize.NewFile()
 

@@ -32,6 +32,7 @@ func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID, enable
 	return operations, nil
 }
 
+// получение связанных операций
 func (s *OperationService) GetConnected(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error) {
 	operations, err = s.repo.GetConnected(ctx, positionId, operationId)
 	if err != nil {
@@ -41,6 +42,7 @@ func (s *OperationService) GetConnected(ctx context.Context, positionId, operati
 	return operations, nil
 }
 
+// получение операций вместе с причинами (причины группируются)
 func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {
 	ops, err := s.repo.GetWithReasons(ctx, positionId)
 	if err != nil {
@@ -54,6 +56,7 @@ func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.U
 				Title:      owr.Title,
 				Done:       owr.Done,
 				Remainder:  owr.Remainder,
+				IsFinish:   owr.IsFinish,
 				StepNumber: owr.StepNumber,
 			})
 			if owr.Value != nil {
@@ -76,6 +79,7 @@ func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.U
 					Title:      owr.Title,
 					Done:       owr.Done,
 					Remainder:  owr.Remainder,
+					IsFinish:   owr.IsFinish,
 					StepNumber: owr.StepNumber,
 				})
 				if owr.Value != nil {
@@ -98,6 +102,7 @@ func (s *OperationService) CreateFew(ctx context.Context, operations []models.Op
 	return nil
 }
 
+// Раньше была проверка на выполнение. Теперь просто получение связанных операций
 func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, done bool, remaider int,
 ) (op1 models.OperationDTO, op2 models.OperationDTO, err error) {
 	operations1, err := s.repo.GetAll(ctx, posId1)
@@ -164,6 +169,7 @@ func (s *OperationService) Update(ctx context.Context, operation models.Complete
 	return nil
 }
 
+// Удаление пропущенных операций
 func (s *OperationService) DeleteSkipped(ctx context.Context, positionId, operationId uuid.UUID, count int) error {
 	operations, err := s.repo.GetAll(ctx, positionId)
 	if err != nil {

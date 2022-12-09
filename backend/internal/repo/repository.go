@@ -26,6 +26,7 @@ type Order interface {
 	Find(context.Context, string) ([]models.FindedOrder, error)
 	Create(context.Context, models.OrderDTO) (uuid.UUID, error)
 	Update(context.Context, models.OrderDTO) error
+	Compilte(context.Context, models.OrderDTO) error
 	DeleteOld(context.Context, time.Time) error
 	Delete(context.Context, models.OrderDTO) error
 }

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Alexander272/route-table/internal/models"
@@ -26,6 +27,10 @@ func (h *Handler) signIn(c *gin.Context) {
 
 	user, token, err := h.services.SignIn(c, dto)
 	if err != nil {
+		if errors.Is(err, models.ErrPassword) {
+			response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "invalid data send")
+			return
+		}
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -71,6 +72,7 @@ type (
 	}
 )
 
+// Инициализация конфига прогаммы
 func Init(configDir string) (*Config, error) {
 	if err := parseConfigFile(configDir); err != nil {
 		return nil, err
@@ -136,5 +138,18 @@ func setFromEnv(conf *Config) error {
 
 	conf.Environment = os.Getenv("APP_ENV")
 
+	return nil
+}
+
+func (u *UrgencyConfig) ChangeUrgency(high time.Duration, middle time.Duration) error {
+	viper.Set("urgency.high", high)
+	viper.Set("urgency.middle", middle)
+	err := viper.WriteConfig()
+	if err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	u.High = high
+	u.Middle = middle
 	return nil
 }

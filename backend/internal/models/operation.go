@@ -17,6 +17,7 @@ type OperationWithReason struct {
 	Done       bool      `db:"done" json:"done"`
 	Remainder  int       `db:"remainder" json:"remainder"`
 	StepNumber int       `db:"step_number" json:"step_number,omitempty"`
+	IsFinish   bool      `db:"is_finish" json:"isFinish"`
 	ReasonId   uuid.UUID `db:"reason_id" json:"-"`
 	Value      *string   `db:"value" json:"-"`
 	Date       *string   `db:"date" json:"-"`

@@ -61,7 +61,6 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 				Count:    count,
 				Title:    row[Template.Title],
 				Ring:     v,
-				Deadline: row[Template.Deadline],
 			})
 
 			for _, r := range root {
@@ -137,6 +136,15 @@ func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID) (p
 	positions, err = s.repo.GetForOrder(ctx, orderId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positions for order. error: %w", err)
+	}
+
+	t, err := strconv.Atoi(positions[0].Deadline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deadline. error: %w", err)
+	}
+	deadline := time.Unix(int64(t), 0).Format("02.01.2006")
+	for i := range positions {
+		positions[i].Deadline = deadline
 	}
 
 	return positions, nil

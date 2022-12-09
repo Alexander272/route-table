@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
-	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -21,13 +20,17 @@ func NewPositionRepo(db *sqlx.DB) *PositionRepo {
 }
 
 func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
-	query := fmt.Sprintf(`SELECT id, position, count, title, ring, deadline, connected, done,
-		(SELECT coalesce(title, '') FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=true ORDER BY title DESC LIMIT 1) as last_operation,
-		(SELECT concat_ws(', осталось ', title, remainder::text) FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=false AND
-		remainder<=%s.count ORDER BY title LIMIT 1) as cur_operation FROM %s WHERE order_id=$1 ORDER BY done, position`,
+	query := fmt.Sprintf(`SELECT %s.id, position, count, title, ring, %s.deadline, connected, %s.done,
+		(SELECT coalesce(title, '') FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=true 
+			ORDER BY title DESC LIMIT 1) as last_operation,
+		(SELECT concat_ws(', осталось ', title, remainder::text) FROM %s INNER JOIN %s ON operation_id=%s.id WHERE 
+			position_id=%s.id AND done=false AND remainder<=%s.count ORDER BY title LIMIT 1) as cur_operation 
+		FROM %s INNER JOIN %s ON order_id = %s.id WHERE order_id=$1 ORDER BY done, position`,
+		PositionsTable, OrdersTable, PositionsTable,
 		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable,
-		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable, PositionsTable,
-		PositionsTable)
+		OperationsTable, RootOperationTable, RootOperationTable,
+		PositionsTable, PositionsTable,
+		PositionsTable, OrdersTable, OrdersTable)
 	// query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
 
 	if err := r.db.Select(&positions, query, orderId); err != nil {
@@ -61,15 +64,15 @@ func (r *PositionRepo) Create(ctx context.Context, position models.PositionDTO) 
 }
 
 func (r *PositionRepo) CreateFew(ctx context.Context, positions []models.PositionDTO) error {
-	query := fmt.Sprintf("INSERT INTO %s (id, order_id, position, count, title, ring, deadline, connected) VALUES ", PositionsTable)
+	query := fmt.Sprintf("INSERT INTO %s (id, order_id, position, count, title, ring, connected) VALUES ", PositionsTable)
 
 	args := make([]interface{}, 0)
 	values := make([]string, 0, len(positions))
 
-	c := 8
+	c := 7
 	for i, p := range positions {
-		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5, i*c+6, i*c+7, i*c+8))
-		args = append(args, p.Id, p.OrderId, p.Position, p.Count, p.Title, p.Ring, p.Deadline, p.Connected)
+		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5, i*c+6, i*c+7))
+		args = append(args, p.Id, p.OrderId, p.Position, p.Count, p.Title, p.Ring, p.Connected)
 	}
 	query += strings.Join(values, ", ")
 
@@ -94,7 +97,6 @@ func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) 
 	if err := r.db.Get(&finish, query, position.Id); err != nil {
 		return fmt.Errorf("failed to execute query finish. error: %w", err)
 	}
-	logger.Debug(finish)
 
 	if finish.IsFinish {
 		query = fmt.Sprintf(`UPDATE %s SET done=$1, complited=$2 WHERE id=$3`, OrdersTable)

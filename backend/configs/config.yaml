@@ -1,43 +1,35 @@
-http:
-    serviceName: "api-service"
-    host: "http://localhost"
-    port: 8080
-    maxHeaderBytes: 1
-    readTimeout: 10s
-    writeTimeout: 10s
-
+auth:
+    accesstokenttl: 20m
+    countattempt: 5
+    limitauthttl: 30m
+    refreshtokenttl: 24h
+    secure: false
 cache:
     ttl: 3600s
-
-auth:
-    accessTokenTTL: 20m
-    refreshTokenTTL: 24h
-    limitAuthTTL: 30m
-    countAttempt: 5
-    secure: false
-    domain: 
-
-postgres:
-    username: postgres
-    host: 127.0.0.1
-    port: 5432
-    dbname: route_db
-    sslmode: require
-
-redis:
-    host: 192.168.5.159
-    port: 6379
-    db: 0
-
+http:
+    host: http://localhost
+    maxheaderbytes: 1
+    port: 8080
+    readtimeout: 10s
+    servicename: api-service
+    writetimeout: 10s
 limiter:
-    rps: 10
     burst: 20
+    rps: 10
     ttl: 10m
-
-urgency:
-    high: 72h
-    middle: 120h
-
 order:
     delay: 5m
     term: 336h
+postgres:
+    dbname: route_db
+    host: 127.0.0.1
+    port: 5432
+    sslmode: require
+    username: postgres
+redis:
+    db: 0
+    host: 192.168.5.159
+    port: 6379
+urgency:
+    high: 24h0m0s
+    middle: 72h0m0s

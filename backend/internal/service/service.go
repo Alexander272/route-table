@@ -13,6 +13,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+// индексы таблицы заказов
 var Template models.Template = models.Template{
 	Order:    18,
 	Title:    3,

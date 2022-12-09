@@ -2,7 +2,9 @@ package v1
 
 import (
 	"net/http"
+	"strings"
 
+	"github.com/Alexander272/route-table/internal/models"
 	"github.com/Alexander272/route-table/internal/models/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -17,13 +19,20 @@ func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
 		orders.GET("/group", h.middleware.AccessForDisplay, h.getGroup)
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
+		orders.PUT("/:id", h.updateOrder)
 	}
 }
 
+// Загрузка заказа
 func (h *Handler) ordersParse(c *gin.Context) {
 	fileHeader, err := c.FormFile("order")
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "error while opening file")
+		return
+	}
+
+	if fileHeader.Header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && !strings.Contains(fileHeader.Filename, "xls") {
+		response.NewErrorResponse(c, http.StatusInternalServerError, "invalid type file", "invalid file type")
 		return
 	}
 
@@ -49,6 +58,7 @@ func (h *Handler) ordersParse(c *gin.Context) {
 	c.JSON(http.StatusCreated, response.IdResponse{Message: "Order added successfully"})
 }
 
+// Получение заказов
 func (h *Handler) getOrders(c *gin.Context) {
 	orders, err := h.services.Order.GetAll(c)
 	if err != nil {
@@ -58,6 +68,7 @@ func (h *Handler) getOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
 }
 
+// Получение закозов в виде группы по срочности
 func (h *Handler) getGroup(c *gin.Context) {
 	orders, err := h.services.Order.GetGrouped(c)
 	if err != nil {
@@ -67,6 +78,7 @@ func (h *Handler) getGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DataResponse{Data: orders})
 }
 
+// Получение заказа по id
 func (h *Handler) getOrder(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -88,6 +100,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DataResponse{Data: order})
 }
 
+// получение заказоа по номеру (лимит 5 штук)
 func (h *Handler) findOrders(c *gin.Context) {
 	number := c.Param("number")
 	if number == "" {
@@ -101,4 +114,32 @@ func (h *Handler) findOrders(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
+}
+
+// обновление заказа (пока только дата отгрузки)
+func (h *Handler) updateOrder(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.NewErrorResponse(c, http.StatusBadRequest, "empty id", "empty id param")
+		return
+	}
+
+	var dto models.OrderDTO
+	if err := c.BindJSON(&dto); err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "invalid data send")
+		return
+	}
+	var err error
+	dto.Id, err = uuid.Parse(id)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
+		return
+	}
+
+	if err := h.services.Order.Update(c, dto); err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+
+	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Order updated successfully"})
 }

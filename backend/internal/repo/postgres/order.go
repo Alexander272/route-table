@@ -19,7 +19,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 }
 
 func (r *OrderRepo) Get(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error) {
-	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE id=$1", OrdersTable)
+	query := fmt.Sprintf("SELECT id, number, done, deadline FROM %s WHERE id=$1", OrdersTable)
 
 	if err := r.db.Get(&order, query, id); err != nil {
 		return models.OrderWithPositions{}, fmt.Errorf("failed to execute query. error: %w", err)
@@ -60,6 +60,17 @@ func (r *OrderRepo) Create(ctx context.Context, order models.OrderDTO) (id uuid.
 }
 
 func (r *OrderRepo) Update(ctx context.Context, order models.OrderDTO) error {
+	query := fmt.Sprintf("UPDATE %s SET deadline=$1 WHERE id=$2", OrdersTable)
+
+	_, err := r.db.Exec(query, order.Deadline, order.Id)
+	if err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+
+	return nil
+}
+
+func (r *OrderRepo) Compilte(ctx context.Context, order models.OrderDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET done=$1 WHERE id=$2", OrdersTable)
 
 	_, err := r.db.Exec(query, order.Done, order.Id)

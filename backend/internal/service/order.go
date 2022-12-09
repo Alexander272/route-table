@@ -42,12 +42,18 @@ type AvailablePositions struct {
 	Type  string
 }
 
+// Прокладки которые будет вносится в базу
 var availablePositions []AvailablePositions = []AvailablePositions{
 	{Title: "СНП-Д", Type: "СНП"},
 	{Title: "СНП-Г", Type: "СНП"},
 	{Title: "СНП-В", Type: "СНП"},
+	{Title: "СНП-Б", Type: "СНП"},
+	{Title: "СНП-А", Type: "СНП"},
 }
 
+//* Загрузка заказа
+// Пробегемся по всем позициям и добавляем их в массив, который после пердаем в функцию для создания позиций,
+// если номера заказа нет мы его создаем
 func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 	orders := make(map[string]uuid.UUID, 0)
 	positions := make([][]string, 0, 200)
@@ -113,6 +119,7 @@ func (s *OrderService) Find(ctx context.Context, number string) (orders []models
 	return orders, nil
 }
 
+// Получеам список всех заказов, добавляем срочность и группируем по дате отгрузки
 func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder, err error) {
 	o, err := s.repo.GetAll(ctx)
 	if err != nil {
@@ -145,7 +152,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 		Urgency:  urgency,
 		Orders: []models.Order{{
 			Id:       o[0].Id,
-			Number:   o[0].Number,
+			Number:   strings.TrimLeft(o[0].Number, "0"),
 			Done:     o[0].Done,
 			Date:     o[0].Date,
 			Progress: math.Round(o[0].Progress*1000) / 10,
@@ -166,7 +173,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 		if date.Format("02.01.2006") == orders[len(orders)-1].Deadline {
 			orders[len(orders)-1].Orders = append(orders[len(orders)-1].Orders, models.Order{
 				Id:       o.Id,
-				Number:   o.Number,
+				Number:   strings.TrimLeft(o.Number, "0"),
 				Done:     o.Done,
 				Date:     o.Date,
 				Progress: math.Round(o.Progress*1000) / 10,
@@ -188,7 +195,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 				Urgency:  urgency,
 				Orders: []models.Order{{
 					Id:       o.Id,
-					Number:   o.Number,
+					Number:   strings.TrimLeft(o.Number, "0"),
 					Done:     o.Done,
 					Date:     o.Date,
 					Progress: math.Round(o.Progress*1000) / 10,
@@ -207,6 +214,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 	return orders, nil
 }
 
+// Группируем все заказы по срочности
 func (s *OrderService) GetGrouped(ctx context.Context) (group models.UrgencyGroup, err error) {
 	orders, err := s.GetAll(ctx)
 	if err != nil {
@@ -228,6 +236,7 @@ func (s *OrderService) GetGrouped(ctx context.Context) (group models.UrgencyGrou
 	return group, nil
 }
 
+// Получение заказа с позициями
 func (s *OrderService) GetWithPositions(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error) {
 	order, err = s.repo.Get(ctx, id)
 	if err != nil {

@@ -8,4 +8,5 @@ const (
 	ReasonsTable       = "reasons"
 	RolesTable         = "roles"
 	UsersTable         = "users"
+	DisplayTable       = "display"
 )

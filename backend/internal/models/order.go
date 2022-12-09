@@ -34,6 +34,7 @@ type OrderWithPositions struct {
 	Id        uuid.UUID          `db:"id" json:"id"`
 	Number    string             `db:"number" json:"number"`
 	Done      bool               `db:"done" json:"done"`
+	Deadline  string             `db:"deadline" json:"deadline,omitempty"`
 	Positions []PositionForOrder `json:"positions"`
 }
 

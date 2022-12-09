@@ -10,7 +10,13 @@ export interface IOrder {
     id: string
     number: string
     done: boolean
+    deadline: string
     positions: IPositionForOrder[]
+}
+
+export interface IUpdateOrder {
+    id: string
+    deadline: string
 }
 
 export interface ISearchForm {

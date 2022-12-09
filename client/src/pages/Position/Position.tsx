@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import React from "react"
 import { Box, Container, Divider, Paper, Stack, Typography, CircularProgress } from "@mui/material"
 import { useParams } from "react-router-dom"
 import useSWR from "swr"
@@ -6,11 +6,9 @@ import { IPosition } from "../../types/positions"
 import { fetcher } from "../../service/read"
 import { OperList } from "./components/List/List"
 import { Operations } from "./components/Operations/Operations"
-import { AuthContext } from "../../context/AuthProvider"
 
 export default function Position() {
     const params = useParams()
-    const { user } = useContext(AuthContext)
 
     const { data: position } = useSWR<{ data: IPosition }>(`/positions/${params.id}`, fetcher)
 
@@ -49,10 +47,11 @@ export default function Position() {
                         direction={{ xs: "column", sm: "row" }}
                         divider={<Divider orientation='vertical' flexItem />}
                         spacing={{ xs: 0, sm: 2, md: 4 }}
+                        alignItems='center'
                     >
-                        <Stack direction='row' spacing={2}>
+                        <Stack direction='row' spacing={2} alignItems='center'>
                             <Typography>Заказ/Позиция</Typography>
-                            <Typography sx={{ fontSize: 16 }} color='primary'>
+                            <Typography sx={{ fontSize: 20 }} color='primary'>
                                 № {position.data.order}/{position.data.position}
                             </Typography>
                         </Stack>
@@ -74,7 +73,7 @@ export default function Position() {
 
                     <OperList operations={position?.data?.operations || []} />
 
-                    {!position.data.done && user?.role !== "master" ? (
+                    {!position.data.done ? (
                         <Operations
                             position={position.data}
                             operations={position?.data?.operations.filter(o => !o.done) || []}

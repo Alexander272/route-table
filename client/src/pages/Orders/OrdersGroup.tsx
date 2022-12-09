@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import useSWR from "swr"
 import Masonry from "@mui/lab/Masonry"
+import { Navigate } from "react-router-dom"
+import { AuthContext } from "../../context/AuthProvider"
 import { fetcher } from "../../service/read"
 import { IUrgencyGroup } from "../../types/order"
 import { OrderItem } from "./OrderItem"
@@ -9,6 +11,8 @@ import classes from "./orders.module.scss"
 const itemSize = 307
 
 export default function OrdersGroup() {
+    const { user } = useContext(AuthContext)
+
     const { data: res, error } = useSWR<{ data: IUrgencyGroup }>("/orders/group", fetcher, {
         refreshInterval: 60 * 1000,
     })
@@ -41,6 +45,13 @@ export default function OrdersGroup() {
 
         setColumns(newColumns)
     }, [res, setColumns])
+
+    useEffect(() => {
+        if (!user) return
+        if (user?.role !== "display" && user?.role !== "master") {
+            Navigate({ to: "/", replace: true })
+        }
+    }, [user])
 
     if (error) return null
 

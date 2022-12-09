@@ -19,7 +19,7 @@ export const SignInForm: FC<Props> = () => {
         control,
         handleSubmit,
         formState: { errors },
-    } = useForm<ISignIn>({ defaultValues: { login: "login" } })
+    } = useForm<ISignIn>({ defaultValues: { login: localStorage.getItem("login") || "login" } })
 
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -28,8 +28,15 @@ export const SignInForm: FC<Props> = () => {
     const { setUser } = useContext(AuthContext)
 
     const signInHandler: SubmitHandler<ISignIn> = async data => {
-        if (data.login === "login") return
         setError("")
+        if (data.login === "login") {
+            setError("Логин не выбран")
+            handleClick()
+            return
+        }
+
+        localStorage.setItem("login", data.login)
+
         try {
             setLoading(true)
             const res = await signIn(data)

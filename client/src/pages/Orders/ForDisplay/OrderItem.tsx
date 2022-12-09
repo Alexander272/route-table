@@ -1,8 +1,8 @@
 import { Box, CircularProgress, Stack, Typography } from "@mui/material"
 import React, { FC, useContext } from "react"
 import { useNavigate } from "react-router-dom"
-import { OrderContext } from "../../context/order"
-import { IGroupedOrder, IOrderItem } from "../../types/order"
+import { OrderContext } from "../../../context/order"
+import { IGroupedOrder, IOrderItem } from "../../../types/order"
 import classes from "./orders.module.scss"
 
 type Props = {
@@ -34,7 +34,7 @@ export const OrderItem: FC<Props> = ({ order }) => {
 
     return (
         <div className={[classes.item, urgency ? classes[urgency] : null].join(" ")}>
-            <Stack alignItems='center' spacing={1} sx={{ marginBottom: 1 }}>
+            <Stack alignItems='center' spacing={1}>
                 <Typography color='primary' variant='h5' sx={{ fontWeight: 700 }}>
                     Дата отгрузки {order.deadline}
                 </Typography>
@@ -53,15 +53,19 @@ export const OrderItem: FC<Props> = ({ order }) => {
                     }}
                 >
                     <Stack spacing={0} onClick={selectOrder(o)} sx={{ cursor: "pointer" }}>
-                        <Typography variant='h6' color='primary' sx={{ fontWeight: 700 }}>
-                            Заказ №{o.number}
+                        <Typography
+                            variant='h6'
+                            color='primary'
+                            sx={{ fontWeight: 700, fontSize: "3.0rem", lineHeight: "60px" }}
+                        >
+                            №{o.number}
                         </Typography>
-                        <Typography>От {o.date}</Typography>
+                        {/* <Typography>От {o.date}</Typography> */}
                     </Stack>
 
                     <Box sx={{ position: "relative", display: "inline-flex" }}>
                         <CircularProgress
-                            size={50}
+                            size={60}
                             variant='determinate'
                             value={o.progress || 0}
                             color={chooseColor(o.progress)}
@@ -81,8 +85,8 @@ export const OrderItem: FC<Props> = ({ order }) => {
                             <Typography
                                 variant='caption'
                                 component='div'
-                                color='text.secondary'
-                                fontSize={12}
+                                // color='text.secondary'
+                                fontSize={18}
                             >{`${o.progress || 0}%`}</Typography>
                         </Box>
                     </Box>

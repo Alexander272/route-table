@@ -25,6 +25,7 @@ import { orderParse } from "../../../../service/order"
 import { fetcher } from "../../../../service/read"
 import { IOrder } from "../../../../types/order"
 import { IPositionForOrder } from "../../../../types/positions"
+import { Edit } from "./Edit"
 
 const messages = {
     success: {
@@ -64,11 +65,11 @@ export const OrderTable: FC<Props> = () => {
 
     const filterHandler = useCallback(
         (search: string) => {
-            setPositions(
-                order?.data.positions.filter(
-                    p => p.title.includes(search) || p.position.toString() === search
-                ) || []
-            )
+            if (search)
+                setPositions(
+                    order?.data.positions.filter(p => p.position.toString() === search) || []
+                )
+            else setPositions(order?.data.positions || [])
         },
         [order]
     )
@@ -108,6 +109,19 @@ export const OrderTable: FC<Props> = () => {
         setOpen(false)
     }
 
+    const chooseBackroundRow = (done: boolean, ring: string) => {
+        if (done) {
+            return "var(--green)"
+        } else {
+            return "var(--white)"
+        }
+        // if (ring === "наружное") {
+        //     return "var(--pale-red)"
+        // } else {
+        //     return "var(--white)"
+        // }
+    }
+
     if (!order)
         return (
             <Box
@@ -133,10 +147,17 @@ export const OrderTable: FC<Props> = () => {
                     </Alert>
                 </Snackbar>
                 {user?.role === "master" && (
-                    <Button variant='contained' component='label' onChange={uploadHandler}>
-                        Загрузить заказ
-                        <input hidden type='file' />
-                    </Button>
+                    <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        divider={<Divider orientation='vertical' flexItem />}
+                        spacing={{ xs: 0, sm: 2, md: 4 }}
+                        sx={{ marginY: 2, marginX: [1, "130px"] }}
+                    >
+                        <Button variant='contained' component='label' onChange={uploadHandler}>
+                            Загрузить заказ
+                            <input hidden type='file' />
+                        </Button>
+                    </Stack>
                 )}
             </Box>
         )
@@ -161,9 +182,10 @@ export const OrderTable: FC<Props> = () => {
             >
                 <TextField
                     id='filter'
-                    label='Наименование'
+                    label='№ Позиции'
                     size='small'
                     variant='outlined'
+                    autoComplete='off'
                     sx={{ background: "var(--white)" }}
                     value={search}
                     onChange={searchHandler}
@@ -179,6 +201,8 @@ export const OrderTable: FC<Props> = () => {
                         <input hidden type='file' />
                     </Button>
                 )}
+
+                {user?.role === "master" && <Edit order={order.data} />}
             </Stack>
 
             <TableContainer sx={{ maxHeight: 680 }}>
@@ -186,8 +210,8 @@ export const OrderTable: FC<Props> = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>№</TableCell>
-                            <TableCell>Количество</TableCell>
                             <TableCell>Наименование</TableCell>
+                            <TableCell>Количество</TableCell>
                             <TableCell>Ограничительное кольцо</TableCell>
                             <TableCell>Срок выполнения</TableCell>
                             <TableCell>Последная выполенная операция</TableCell>
@@ -199,12 +223,19 @@ export const OrderTable: FC<Props> = () => {
                             <TableRow
                                 key={row.id}
                                 onClick={navigateToPositionHandler(row.id)}
-                                sx={{ background: row.done ? "var(--gray)" : " var(--white)" }}
+                                sx={{ background: chooseBackroundRow(row.done, row.ring) }}
                             >
                                 <TableCell>{row.position}</TableCell>
-                                <TableCell>{row.count}</TableCell>
                                 <TableCell>{row.title}</TableCell>
-                                <TableCell>{row.ring}</TableCell>
+                                <TableCell>{row.count}</TableCell>
+                                <TableCell
+                                    sx={{
+                                        fontWeight: row.ring === "наружное" ? "700" : "400",
+                                        fontSize: row.ring === "наружное" ? "16px" : "14px",
+                                    }}
+                                >
+                                    {row.ring}
+                                </TableCell>
                                 <TableCell>{row.deadline}</TableCell>
                                 <TableCell>{row.lastOperation}</TableCell>
                                 <TableCell>{row.curOperation}</TableCell>

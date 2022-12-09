@@ -7,6 +7,8 @@ type Props = {
 }
 
 export const OperList: FC<Props> = ({ operations }) => {
+    const isFinish = operations[operations.length - 1].done
+
     return (
         <List dense sx={{ marginY: 1, width: "100%", maxWidth: "800px" }}>
             {operations?.map(o => (
@@ -28,7 +30,10 @@ export const OperList: FC<Props> = ({ operations }) => {
                     ) : (
                         <>
                             <Typography sx={{ flexBasis: "70%" }}>{o.title}</Typography>
-                            <Typography sx={{ fontSize: 16, flexBasis: "30%" }} color='primary'>
+                            <Typography
+                                sx={{ fontSize: 16, flexBasis: "30%" }}
+                                color={isFinish ? "green" : o.done ? "red" : "primary"}
+                            >
                                 Осталось: {o.remainder}
                             </Typography>
                         </>

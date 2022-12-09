@@ -73,7 +73,7 @@ export const Header: FC<Props> = () => {
 
                         {user?.role === "master" || user?.role === "display" ? (
                             <Tooltip title='Список заказов'>
-                                <Link to='/orders/group' className={classes.profile}>
+                                <Link to='/orders' className={classes.profile}>
                                     <img
                                         src='/image/list.svg'
                                         alt='orders'

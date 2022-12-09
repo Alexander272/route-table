@@ -9,6 +9,7 @@ const Home = lazy(() => import("./pages/Home/Home"))
 const Position = lazy(() => import("./pages/Position/Position"))
 // const Orders = lazy(() => import("./pages/Orders/Orders"))
 const OrdersGroup = lazy(() => import("./pages/Orders/OrdersGroup"))
+const OrdersGroupForDisplay = lazy(() => import("./pages/Orders/ForDisplay/OrdersGroupForDisplay"))
 
 export const MyRoutes = () => {
     return (
@@ -26,8 +27,8 @@ export const MyRoutes = () => {
                 >
                     <Route index element={<Home />} />
                     <Route path='/positions/:id' element={<Position />} />
-                    {/* <Route path='/orders' element={<Orders />} /> */}
-                    <Route path='/orders/group' element={<OrdersGroup />} />
+                    <Route path='/orders/group' element={<OrdersGroupForDisplay />} />
+                    <Route path='/orders' element={<OrdersGroup />} />
                 </Route>
 
                 <Route path='*' element={<div>Страница не найдена</div>} />

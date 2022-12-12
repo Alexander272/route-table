@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Alexander272/route-table/internal/config"
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
 	"github.com/Alexander272/route-table/pkg/auth"
@@ -49,10 +50,12 @@ type Order interface {
 	Find(context.Context, string) ([]models.FindedOrder, error)
 	GetAll(context.Context) ([]models.GroupedOrder, error)
 	GetGrouped(context.Context) (models.UrgencyGroup, error)
-	GetWithPositions(context.Context, uuid.UUID) (models.OrderWithPositions, error)
+	GetWithPositions(context.Context, uuid.UUID, string, pq.StringArray) (models.OrderWithPositions, error)
 	Create(context.Context, models.OrderDTO) (uuid.UUID, error)
 	Update(context.Context, models.OrderDTO) error
 	Delete(context.Context, models.OrderDTO) error
+
+	GetForAnalytics(context.Context) (*excelize.File, error)
 }
 
 type Reason interface {
@@ -84,6 +87,11 @@ type Session interface {
 	TokenParse(token string) (user models.UserWithRole, err error)
 }
 
+type Urgency interface {
+	Get(ctx context.Context) models.Urgency
+	Change(ctx context.Context, urgency models.Urgency) error
+}
+
 type Services struct {
 	RootOperation
 	Operation
@@ -93,6 +101,7 @@ type Services struct {
 	Role
 	User
 	Session
+	Urgency
 }
 
 type Deps struct {
@@ -101,8 +110,7 @@ type Deps struct {
 	Hasher          hasher.PasswordHasher
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
-	UrgencyHigh     time.Duration
-	UrgencyMid      time.Duration
+	Urgency         *config.UrgencyConfig
 	QueryDelay      time.Duration
 	OrdersTerm      time.Duration
 }
@@ -112,10 +120,11 @@ func NewServices(deps Deps) *Services {
 	reason := NewReasonService(deps.Repos.Reason)
 	operation := NewOperationService(deps.Repos.Operation, reason)
 	position := NewPositionService(deps.Repos.Position, operation, rootOperation)
-	order := NewOrderService(deps.Repos.Order, position, deps.UrgencyHigh, deps.UrgencyMid, deps.OrdersTerm, deps.QueryDelay)
+	order := NewOrderService(deps.Repos.Order, position, deps.Urgency, deps.OrdersTerm, deps.QueryDelay)
 	role := NewRoleService(deps.Repos.Role)
 	user := NewUserService(deps.Repos.User, deps.Hasher, role)
 	session := NewSessionService(deps.Repos.Session, user, deps.TokenManager, deps.AccessTokenTTL, deps.RefreshTokenTTL)
+	urgency := NewUrgencyService(deps.Urgency)
 
 	return &Services{
 		RootOperation: rootOperation,
@@ -126,5 +135,6 @@ func NewServices(deps Deps) *Services {
 		Role:          role,
 		User:          user,
 		Session:       session,
+		Urgency:       urgency,
 	}
 }

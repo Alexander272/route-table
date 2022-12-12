@@ -73,8 +73,7 @@ func main() {
 		Hasher:          hasher,
 		AccessTokenTTL:  conf.Auth.AccessTokenTTL,
 		RefreshTokenTTL: conf.Auth.RefreshTokenTTL,
-		UrgencyHigh:     conf.Urgency.High,
-		UrgencyMid:      conf.Urgency.Middle,
+		Urgency:         conf.Urgency,
 		QueryDelay:      conf.Order.Delay,
 		OrdersTerm:      conf.Order.Term,
 	})

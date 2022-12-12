@@ -18,7 +18,7 @@ limiter:
     rps: 10
     ttl: 10m
 order:
-    delay: 5m
+    delay: 24h
     term: 336h
 postgres:
     dbname: route_db

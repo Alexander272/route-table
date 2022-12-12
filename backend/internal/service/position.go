@@ -30,6 +30,8 @@ var gasket map[string][]string = map[string][]string{
 	"СНП-Д": {"внутрен.", "наружное"},
 	"СНП-Г": {"наружное"},
 	"СНП-В": {"внутрен."},
+	"СНП-Б": {""},
+	"СНП-А": {""},
 }
 
 func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.UUID, positions [][]string) error {
@@ -132,10 +134,28 @@ func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UU
 	return position, nil
 }
 
-func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
-	positions, err = s.repo.GetForOrder(ctx, orderId)
+func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID, enabled pq.StringArray) (positions []models.PositionForOrder, err error) {
+	positions, err = s.repo.GetForOrder(ctx, orderId, enabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positions for order. error: %w", err)
+	}
+
+	t, err := strconv.Atoi(positions[0].Deadline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deadline. error: %w", err)
+	}
+	deadline := time.Unix(int64(t), 0).Format("02.01.2006")
+	for i := range positions {
+		positions[i].Deadline = deadline
+	}
+
+	return positions, nil
+}
+
+func (s *PositionService) GetFullForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
+	positions, err = s.repo.GetFullForOrder(ctx, orderId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get full positions for order. error: %w", err)
 	}
 
 	t, err := strconv.Atoi(positions[0].Deadline)
@@ -171,16 +191,18 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 				return err
 			}
 			if op2.Done {
-				if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done}); err != nil {
+				comlited := fmt.Sprintf("%d", time.Now().Unix())
+				if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done, Complited: comlited}); err != nil {
 					return err
 				}
 			}
 		} else {
 			op1 = models.OperationDTO{
-				Id:        position.Operation.Id,
-				Done:      position.Operation.Done,
-				Remainder: position.Operation.Remainder,
-				Date:      time.Now().Format("02.01.2006 15:04"),
+				Id:         position.Operation.Id,
+				PositionId: position.Id,
+				Done:       position.Operation.Done,
+				Remainder:  position.Operation.Remainder,
+				Date:       time.Now().Format("02.01.2006 15:04"),
 			}
 		}
 
@@ -188,7 +210,8 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 			return err
 		}
 		if op1.Done {
-			if err := s.Complete(ctx, models.PositionDTO{Id: position.Id, Done: op1.Done}); err != nil {
+			comlited := fmt.Sprintf("%d", time.Now().Unix())
+			if err := s.Complete(ctx, models.PositionDTO{Id: position.Id, Done: op1.Done, Complited: comlited}); err != nil {
 				return err
 			}
 		}

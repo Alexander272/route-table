@@ -51,6 +51,7 @@ type PositionDTO struct {
 	Deadline  string    `json:"deadline"`
 	Connected uuid.UUID `json:"connected"`
 	Done      bool      `json:"done"`
+	Complited string    `json:"complited"`
 }
 
 type CompletePosition struct {

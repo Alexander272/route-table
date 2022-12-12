@@ -9,6 +9,7 @@ import (
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 type PositionRepo struct {
@@ -19,7 +20,7 @@ func NewPositionRepo(db *sqlx.DB) *PositionRepo {
 	return &PositionRepo{db: db}
 }
 
-func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
+func (r *PositionRepo) GetFullForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
 	query := fmt.Sprintf(`SELECT %s.id, position, count, title, ring, %s.deadline, connected, %s.done,
 		(SELECT coalesce(title, '') FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=true 
 			ORDER BY title DESC LIMIT 1) as last_operation,
@@ -34,6 +35,32 @@ func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID) (posi
 	// query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
 
 	if err := r.db.Select(&positions, query, orderId); err != nil {
+		return nil, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return positions, nil
+}
+
+func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID, enabled pq.StringArray) (positions []models.PositionForOrder, err error) {
+	query := fmt.Sprintf(`SELECT %s.id, position, count, title, ring, %s.deadline, connected, %s.done,
+		(SELECT coalesce(title, '') FROM %s INNER JOIN %s ON operation_id=%s.id WHERE position_id=%s.id AND done=true 
+			ORDER BY title DESC LIMIT 1) as last_operation,
+		(SELECT concat_ws(', осталось ', title, remainder::text) FROM %s INNER JOIN %s ON operation_id=%s.id WHERE 
+			position_id=%s.id AND done=false AND remainder<=%s.count ORDER BY title LIMIT 1) as cur_operation 
+		FROM %s INNER JOIN %s ON order_id = %s.id WHERE order_id=$1 AND (
+			SELECT count(case when done = false then done end) FROM %s INNER JOIN %s ON operation_id=%s.id
+			WHERE array[%s.id] <@ $2 AND position_id=%s.id
+  		)>0 ORDER BY done, position`,
+		PositionsTable, OrdersTable, PositionsTable,
+		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable,
+		OperationsTable, RootOperationTable, RootOperationTable,
+		PositionsTable, PositionsTable,
+		PositionsTable, OrdersTable, OrdersTable,
+		OperationsTable, RootOperationTable, RootOperationTable,
+		RootOperationTable, PositionsTable,
+	)
+	// query := fmt.Sprintf("SELECT id, position, count, title, ring, deadline, connected, done FROM %s WHERE order_id=$1", PositionsTable)
+
+	if err := r.db.Select(&positions, query, orderId, enabled); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}
 	return positions, nil
@@ -84,9 +111,9 @@ func (r *PositionRepo) CreateFew(ctx context.Context, positions []models.Positio
 }
 
 func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) error {
-	query := fmt.Sprintf("UPDATE %s SET done=$1 WHERE id=$2", PositionsTable)
+	query := fmt.Sprintf("UPDATE %s SET done=$1, complited=$2 WHERE id=$3", PositionsTable)
 
-	_, err := r.db.Exec(query, position.Done, position.Id)
+	_, err := r.db.Exec(query, position.Done, position.Complited, position.Id)
 	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}

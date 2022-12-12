@@ -45,7 +45,7 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 	return router
 }
 
-func (h *Handler) initAPI(router *gin.Engine, auth config.AuthConfig) {
+func (h *Handler) initAPI(router *gin.Engine, auth *config.AuthConfig) {
 	handlerV1 := httpV1.NewHandler(h.services, auth, middleware.NewMiddleware(h.services, auth))
 	api := router.Group("/api")
 	{

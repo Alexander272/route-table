@@ -8,32 +8,32 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Alexander272/route-table/internal/config"
 	"github.com/Alexander272/route-table/internal/models"
 	repository "github.com/Alexander272/route-table/internal/repo"
 	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/xuri/excelize/v2"
 )
 
 type OrderService struct {
-	repo        repository.Order
-	position    *PositionService
-	urgencyHigh time.Duration
-	urgencyMid  time.Duration
-	ordersTerm  time.Duration
-	queryDelay  time.Duration
-	queryTime   time.Time
+	repo       repository.Order
+	position   *PositionService
+	urgency    *config.UrgencyConfig
+	ordersTerm time.Duration
+	queryDelay time.Duration
+	queryTime  time.Time
 }
 
-func NewOrderService(repo repository.Order, position *PositionService, urgencyHigh, urgencyMid, ordersTerm, queryDelay time.Duration) *OrderService {
+func NewOrderService(repo repository.Order, position *PositionService, urgency *config.UrgencyConfig, ordersTerm, queryDelay time.Duration) *OrderService {
 	return &OrderService{
-		repo:        repo,
-		position:    position,
-		urgencyHigh: urgencyHigh,
-		urgencyMid:  urgencyMid,
-		ordersTerm:  ordersTerm,
-		queryDelay:  queryDelay,
-		queryTime:   time.Now(),
+		repo:       repo,
+		position:   position,
+		urgency:    urgency,
+		ordersTerm: ordersTerm,
+		queryDelay: queryDelay,
+		queryTime:  time.Now(),
 	}
 }
 
@@ -88,7 +88,11 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 					if err != nil {
 						return fmt.Errorf("failed to parse date of deadline. error: %w", err)
 					}
-					id, err := s.Create(ctx, models.OrderDTO{Number: parts[2], Deadline: fmt.Sprintf("%d", deadline.Unix()), Date: parts[4]})
+					id, err := s.Create(ctx, models.OrderDTO{
+						Number:   parts[2],
+						Deadline: fmt.Sprintf("%d", deadline.Unix()),
+						Date:     fmt.Sprintf("%s %s", parts[4], parts[5]),
+					})
 					if err != nil {
 						return err
 					}
@@ -138,9 +142,9 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 	date := time.Unix(int64(deadline), 0)
 
 	var urgency string
-	if time.Until(date) <= s.urgencyHigh {
+	if time.Until(date) <= s.urgency.High {
 		urgency = "Высокая"
-	} else if time.Until(date) <= s.urgencyMid {
+	} else if time.Until(date) <= s.urgency.Middle {
 		urgency = "Средняя"
 	} else {
 		urgency = "Обычная"
@@ -181,9 +185,9 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 		} else {
 			groupId := uuid.New()
 
-			if time.Until(date) <= s.urgencyHigh {
+			if time.Until(date) <= s.urgency.High {
 				urgency = "Высокая"
-			} else if time.Until(date) <= s.urgencyMid {
+			} else if time.Until(date) <= s.urgency.Middle {
 				urgency = "Средняя"
 			} else {
 				urgency = "Обычная"
@@ -237,16 +241,25 @@ func (s *OrderService) GetGrouped(ctx context.Context) (group models.UrgencyGrou
 }
 
 // Получение заказа с позициями
-func (s *OrderService) GetWithPositions(ctx context.Context, id uuid.UUID) (order models.OrderWithPositions, err error) {
+func (s *OrderService) GetWithPositions(ctx context.Context, id uuid.UUID, role string, enabled pq.StringArray) (order models.OrderWithPositions, err error) {
 	order, err = s.repo.Get(ctx, id)
 	if err != nil {
 		return models.OrderWithPositions{}, fmt.Errorf("failed to get order. error: %w", err)
 	}
 
-	positions, err := s.position.GetForOrder(ctx, id)
-	if err != nil {
-		return models.OrderWithPositions{}, err
+	var positions []models.PositionForOrder
+	if role != "master" {
+		positions, err = s.position.GetForOrder(ctx, id, enabled)
+		if err != nil {
+			return models.OrderWithPositions{}, err
+		}
+	} else {
+		positions, err = s.position.GetFullForOrder(ctx, id)
+		if err != nil {
+			return models.OrderWithPositions{}, err
+		}
 	}
+
 	order.Positions = positions
 
 	return order, nil
@@ -283,4 +296,104 @@ func (s *OrderService) Delete(ctx context.Context, order models.OrderDTO) error 
 		return fmt.Errorf("failed to delete order. error: %w", err)
 	}
 	return nil
+}
+
+func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File, err error) {
+	analytics, err := s.repo.GetForAnalytics(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get analytics. error: %w", err)
+	}
+
+	file = excelize.NewFile()
+	sheet := "Sheet1"
+	columnNames := []string{"№ Заказа", "Позиция", "Наименование", "Кольцо", "Операция", "Дата начала", "Дата окончания"}
+	columnAxis := map[string]string{
+		"number":    "A",
+		"position":  "B",
+		"title":     "c",
+		"ring":      "D",
+		"operation": "E",
+		"dateStart": "F",
+		"dateEnd":   "G",
+	}
+
+	err = file.SetSheetRow(sheet, "A1", &columnNames)
+	if err != nil {
+		return nil, fmt.Errorf("failed set title row. error: %w", err)
+	}
+
+	curNum := 2
+	for i, a := range analytics {
+		if i == 0 {
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateStart"], curNum), a.OrderStart)
+			orderEnd := ""
+			if a.OperEnd != "" {
+				t, err := strconv.Atoi(a.OperEnd)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse order date. error: %w", err)
+				}
+				orderEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+			}
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), orderEnd)
+			curNum++
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
+
+			posEnd := ""
+			if a.PosEnd != "" {
+				t, err := strconv.Atoi(a.PosEnd)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse pos date. error: %w", err)
+				}
+				posEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+			}
+
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), posEnd)
+			curNum++
+		} else {
+			if a.Number == analytics[i-1].Number {
+				if a.Number == analytics[i-1].Number && a.Ring == analytics[i-1].Ring {
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["operation"], curNum), a.OperTitle)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.OperEnd)
+					curNum++
+				} else {
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.PosEnd)
+					curNum++
+				}
+			} else {
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateStart"], curNum), a.OrderStart)
+				orderEnd := ""
+				if a.OperEnd != "" {
+					t, err := strconv.Atoi(a.OperEnd)
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse order date. error: %w", err)
+					}
+					orderEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+				}
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), orderEnd)
+				curNum++
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
+				posEnd := ""
+				if a.PosEnd != "" {
+					t, err := strconv.Atoi(a.PosEnd)
+					if err != nil {
+						return nil, fmt.Errorf("failed to parse pos date. error: %w", err)
+					}
+					posEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+				}
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), posEnd)
+				curNum++
+			}
+		}
+	}
+
+	return file, nil
 }

@@ -29,10 +29,13 @@ type Order interface {
 	Compilte(context.Context, models.OrderDTO) error
 	DeleteOld(context.Context, time.Time) error
 	Delete(context.Context, models.OrderDTO) error
+
+	GetForAnalytics(context.Context) ([]models.Analytics, error)
 }
 
 type Position interface {
-	GetForOrder(context.Context, uuid.UUID) ([]models.PositionForOrder, error)
+	GetForOrder(context.Context, uuid.UUID, pq.StringArray) ([]models.PositionForOrder, error)
+	GetFullForOrder(context.Context, uuid.UUID) ([]models.PositionForOrder, error)
 	Get(context.Context, uuid.UUID) (models.Position, error)
 	Create(context.Context, models.PositionDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.PositionDTO) error
@@ -48,6 +51,7 @@ type Operation interface {
 	Create(context.Context, models.OperationDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error
+	ComliteSkipped(context.Context, models.OperationDTO) error
 	Delete(context.Context, models.OperationDTO) error
 	DeleteFew(context.Context, []uuid.UUID) error
 }

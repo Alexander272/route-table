@@ -108,6 +108,17 @@ func (r *OperationRepo) Update(ctx context.Context, operation models.OperationDT
 	return nil
 }
 
+func (r *OperationRepo) ComliteSkipped(ctx context.Context, operation models.OperationDTO) error {
+	query := fmt.Sprintf("UPDATE %s SET done=$1, date=$2 WHERE done=false and position_id=$3", OperationsTable)
+
+	_, err := r.db.Exec(query, operation.Done, operation.Date, operation.PositionId)
+	if err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+
+	return nil
+}
+
 func (r *OperationRepo) Delete(ctx context.Context, operation models.OperationDTO) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", OperationsTable)
 

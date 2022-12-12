@@ -8,13 +8,13 @@ import (
 type Middleware struct {
 	CookieName           string
 	services             *service.Services
-	auth                 config.AuthConfig
+	auth                 *config.AuthConfig
 	UserIdCtx            string
 	RoleCtx              string
 	EnabledOperationsCtx string
 }
 
-func NewMiddleware(services *service.Services, auth config.AuthConfig) *Middleware {
+func NewMiddleware(services *service.Services, auth *config.AuthConfig) *Middleware {
 	return &Middleware{
 		services:             services,
 		auth:                 auth,

@@ -38,6 +38,23 @@ func (r *OrderRepo) GetAll(ctx context.Context) (orders []models.Order, err erro
 	return orders, nil
 }
 
+func (r *OrderRepo) GetForAnalytics(ctx context.Context) (analytics []models.Analytics, err error) {
+	query := fmt.Sprintf(`SELECT number, %s.date as order_start, %s.complited as order_end, %s.position, %s.title as pos_title, 
+	%s.ring, %s.complited as pos_end, %s.title as oper_title, %s.date as oper_end
+	FROM %s	INNER JOIN %s ON order_id=%s.id	INNER JOIN %s ON position_id=%s.id INNER JOIN %s ON operation_id=%s.id
+	WHERE %s.done=true ORDER BY number, %s.position, %s.ring, %s.step_number`,
+		OrdersTable, OrdersTable, PositionsTable, PositionsTable,
+		PositionsTable, PositionsTable, RootOperationTable, OperationsTable,
+		OrdersTable, PositionsTable, OrdersTable, OperationsTable, PositionsTable, RootOperationTable, RootOperationTable,
+		OrdersTable, PositionsTable, PositionsTable, RootOperationTable,
+	)
+
+	if err := r.db.Select(&analytics, query); err != nil {
+		return nil, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return analytics, nil
+}
+
 func (r *OrderRepo) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
 	query := fmt.Sprintf("SELECT id, number, done FROM %s WHERE number LIKE $1 ORDER BY done LIMIT 5", OrdersTable)
 

@@ -2,12 +2,14 @@ package v1
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/Alexander272/route-table/internal/models/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -20,6 +22,8 @@ func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
 		orders.PUT("/:id", h.updateOrder)
+
+		orders.GET("/analytics", h.getAnalytics)
 	}
 }
 
@@ -92,7 +96,10 @@ func (h *Handler) getOrder(c *gin.Context) {
 		return
 	}
 
-	order, err := h.services.Order.GetWithPositions(c, Id)
+	role, _ := c.Get(h.middleware.RoleCtx)
+	enabledOperations, _ := c.Get(h.middleware.EnabledOperationsCtx)
+
+	order, err := h.services.Order.GetWithPositions(c, Id, role.(string), enabledOperations.(pq.StringArray))
 	if err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
@@ -142,4 +149,21 @@ func (h *Handler) updateOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Order updated successfully"})
+}
+
+func (h *Handler) getAnalytics(c *gin.Context) {
+	file, err := h.services.Order.GetForAnalytics(c)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+
+	fileName := "analytics.xlsx"
+	file.SaveAs(fileName)
+	defer os.Remove(fileName)
+
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.File(fileName)
 }

@@ -11,12 +11,12 @@ const CookieName = "session"
 
 type Handler struct {
 	services   *service.Services
-	auth       config.AuthConfig
+	auth       *config.AuthConfig
 	cookieName string
 	middleware *middleware.Middleware
 }
 
-func NewHandler(services *service.Services, auth config.AuthConfig, middleware *middleware.Middleware) *Handler {
+func NewHandler(services *service.Services, auth *config.AuthConfig, middleware *middleware.Middleware) *Handler {
 	middleware.CookieName = CookieName
 
 	return &Handler{
@@ -39,6 +39,7 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.InitReasonsRoutes(v1)
 		h.InitUsersRoutes(v1)
 		h.InitAuthRoutes(v1)
+		h.InitUrgencyRoutes(v1)
 		v1.GET("/", h.notImplemented)
 	}
 }

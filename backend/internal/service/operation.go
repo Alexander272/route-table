@@ -117,16 +117,18 @@ func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, 
 	// 	return op1, op2, errors.New("connected operation not completed")
 	// }
 	op1 = models.OperationDTO{
-		Id:        operations1[len(operations1)-1].Id,
-		Done:      done,
-		Remainder: remaider,
-		Date:      time.Now().Format("02.01.2006 15:04"),
+		Id:         operations1[len(operations1)-1].Id,
+		PositionId: posId1,
+		Done:       done,
+		Remainder:  remaider,
+		Date:       time.Now().Format("02.01.2006 15:04"),
 	}
 	op2 = models.OperationDTO{
-		Id:        operations2[len(operations2)-1].Id,
-		Done:      done,
-		Remainder: remaider,
-		Date:      time.Now().Format("02.01.2006 15:04"),
+		Id:         operations2[len(operations2)-1].Id,
+		PositionId: posId2,
+		Done:       done,
+		Remainder:  remaider,
+		Date:       time.Now().Format("02.01.2006 15:04"),
 	}
 
 	return op1, op2, nil
@@ -135,6 +137,9 @@ func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, 
 func (s *OperationService) Complete(ctx context.Context, operation models.OperationDTO) error {
 	if err := s.repo.Update(ctx, operation); err != nil {
 		return fmt.Errorf("failed to complete operation. error: %w", err)
+	}
+	if err := s.repo.ComliteSkipped(ctx, operation); err != nil {
+		return fmt.Errorf("failed to complite skipped operations. error: %w", err)
 	}
 	return nil
 }

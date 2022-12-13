@@ -12,8 +12,9 @@
 .time {
     position: fixed;
     left: 50%;
-    top: 12px;
+    top: -2px;
     transform: translateX(-50%);
+    line-height: 60px
 }
 
 .column {

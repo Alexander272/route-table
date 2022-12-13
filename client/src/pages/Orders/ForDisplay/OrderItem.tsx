@@ -35,7 +35,16 @@ export const OrderItem: FC<Props> = ({ order }) => {
     return (
         <div className={[classes.item, urgency ? classes[urgency] : null].join(" ")}>
             <Stack alignItems='center' spacing={1}>
-                <Typography color='primary' variant='h5' sx={{ fontWeight: 700 }}>
+                <Typography
+                    // color='primary'
+                    variant='h5'
+                    sx={{
+                        fontWeight: 700,
+                        fontSize: "4.0rem",
+                        lineHeight: "80px",
+                        marginBottom: 1,
+                    }}
+                >
                     Дата отгрузки {order.deadline}
                 </Typography>
             </Stack>
@@ -56,7 +65,7 @@ export const OrderItem: FC<Props> = ({ order }) => {
                         <Typography
                             variant='h6'
                             color='primary'
-                            sx={{ fontWeight: 700, fontSize: "3.0rem", lineHeight: "60px" }}
+                            sx={{ fontWeight: 700, fontSize: "150px", lineHeight: "150px" }}
                         >
                             №{o.number}
                         </Typography>
@@ -65,7 +74,7 @@ export const OrderItem: FC<Props> = ({ order }) => {
 
                     <Box sx={{ position: "relative", display: "inline-flex" }}>
                         <CircularProgress
-                            size={60}
+                            size={150}
                             variant='determinate'
                             value={o.progress || 0}
                             color={chooseColor(o.progress)}
@@ -86,7 +95,7 @@ export const OrderItem: FC<Props> = ({ order }) => {
                                 variant='caption'
                                 component='div'
                                 // color='text.secondary'
-                                fontSize={18}
+                                fontSize={54}
                             >{`${o.progress || 0}%`}</Typography>
                         </Box>
                     </Box>

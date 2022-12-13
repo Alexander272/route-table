@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react"
 import useSWR from "swr"
 import Masonry from "@mui/lab/Masonry"
 import { Navigate } from "react-router-dom"
@@ -9,10 +9,12 @@ import { OrderItem } from "./OrderItem"
 import classes from "./orders.module.scss"
 import { Typography } from "@mui/material"
 
-const itemSize = 320
+const itemSize = 820
 
 export default function OrdersGroup() {
     const { user } = useContext(AuthContext)
+    const container = useRef<HTMLDivElement>(null)
+    const scroll = useRef<number>(0)
 
     const { data: res, error } = useSWR<{ data: IUrgencyGroup }>("/orders/group", fetcher, {
         refreshInterval: 60 * 1000,
@@ -43,6 +45,24 @@ export default function OrdersGroup() {
         setColumns(newColumns)
     }, [res, setColumns])
 
+    const scrollToMyRef = useCallback(() => {
+        if (scroll.current === 0) {
+            scroll.current =
+                (container.current?.scrollHeight || 0) - (container.current?.clientHeight || 0)
+        } else {
+            scroll.current = 0
+        }
+
+        container.current?.scrollTo({ left: 0, top: scroll.current, behavior: "smooth" })
+    }, [])
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            scrollToMyRef()
+        }, 20 * 1000)
+        return () => clearInterval(timer)
+    }, [scrollToMyRef])
+
     useEffect(() => {
         if (!user) return
         if (user?.role !== "display" && user?.role !== "master") {
@@ -56,15 +76,16 @@ export default function OrdersGroup() {
         <>
             <Typography
                 variant='h5'
-                sx={{ textAlign: "center", marginTop: 1, fontWeight: "bold" }}
+                sx={{ textAlign: "center", marginTop: 1, fontWeight: "bold", fontSize: "4rem" }}
                 className={classes.time}
             >
-                {new Date().toLocaleString()}
+                {new Date().toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" })}
             </Typography>
-            <div className={classes.container}>
+
+            <div className={classes.container} ref={container}>
                 {res?.data.high && (
                     <div className={classes.column}>
-                        <Masonry columns={columns[0]} spacing={2}>
+                        <Masonry columns={columns[0]} spacing={3}>
                             {res?.data.high.map(o => (
                                 <OrderItem key={o.id} order={o} />
                             ))}
@@ -73,7 +94,7 @@ export default function OrdersGroup() {
                 )}
                 {res?.data.middle && (
                     <div className={classes.column}>
-                        <Masonry columns={columns[1]} spacing={2}>
+                        <Masonry columns={columns[1]} spacing={3}>
                             {res?.data.middle.map(o => (
                                 <OrderItem key={o.id} order={o} />
                             ))}

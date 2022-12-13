@@ -18,3 +18,11 @@ export const orderUpdate = async (data: IUpdateOrder) => {
         throw error.response.message
     }
 }
+
+export const orderDelete = async (id: string) => {
+    try {
+        await api.delete(`/orders/${id}`)
+    } catch (error: any) {
+        throw error.response.message
+    }
+}

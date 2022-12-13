@@ -63,12 +63,14 @@ export default function Position() {
                             </Typography>
                         </Stack>
 
-                        <Stack direction='row' spacing={2}>
-                            <Typography>Ограничительное кольцо</Typography>
-                            <Typography sx={{ fontSize: 16 }} color='primary'>
-                                {position.data.ring}
-                            </Typography>
-                        </Stack>
+                        {position.data.ring && (
+                            <Stack direction='row' spacing={2}>
+                                <Typography>Ограничительное кольцо</Typography>
+                                <Typography sx={{ fontSize: 16 }} color='primary'>
+                                    {position.data.ring}
+                                </Typography>
+                            </Stack>
+                        )}
                     </Stack>
 
                     <OperList operations={position?.data?.operations || []} />

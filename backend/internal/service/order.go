@@ -159,7 +159,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 			Number:   strings.TrimLeft(o[0].Number, "0"),
 			Done:     o[0].Done,
 			Date:     o[0].Date,
-			Progress: math.Round(o[0].Progress*1000) / 10,
+			Progress: math.Round(o[0].Progress * 100),
 		}},
 	})
 
@@ -180,7 +180,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 				Number:   strings.TrimLeft(o.Number, "0"),
 				Done:     o.Done,
 				Date:     o.Date,
-				Progress: math.Round(o.Progress*1000) / 10,
+				Progress: math.Round(o.Progress * 100),
 			})
 		} else {
 			groupId := uuid.New()
@@ -202,7 +202,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 					Number:   strings.TrimLeft(o.Number, "0"),
 					Done:     o.Done,
 					Date:     o.Date,
-					Progress: math.Round(o.Progress*1000) / 10,
+					Progress: math.Round(o.Progress * 100),
 				}},
 			})
 		}
@@ -306,7 +306,7 @@ func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File
 
 	file = excelize.NewFile()
 	sheet := "Sheet1"
-	columnNames := []string{"№ Заказа", "Позиция", "Наименование", "Кольцо", "Операция", "Дата начала", "Дата окончания"}
+	columnNames := []string{"№ Заказа", "Позиция", "Наименование", "Кольцо", "Операция", "Дата заказа", "Дата выполнения", "Всего дней изготовления"}
 	columnAxis := map[string]string{
 		"number":    "A",
 		"position":  "B",
@@ -315,6 +315,51 @@ func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File
 		"operation": "E",
 		"dateStart": "F",
 		"dateEnd":   "G",
+		"term":      "H",
+	}
+
+	numberStyle, err := file.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Color: "ffffff",
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create order style. error: %s", err)
+	}
+	numberStyle1, err := file.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Color: "dffffb",
+		},
+		Fill: excelize.Fill{
+			Type:    "pattern",
+			Pattern: 1,
+			Color:   []string{"dffffb"},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create order style. error: %s", err)
+	}
+
+	orderStyle, err := file.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{
+			Type:    "pattern",
+			Pattern: 1,
+			Color:   []string{"aaff96"},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create order style. error: %s", err)
+	}
+
+	posStyle, err := file.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{
+			Type:    "pattern",
+			Pattern: 1,
+			Color:   []string{"dffffb"},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create position style. error: %s", err)
 	}
 
 	err = file.SetSheetRow(sheet, "A1", &columnNames)
@@ -325,59 +370,112 @@ func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File
 	curNum := 2
 	for i, a := range analytics {
 		if i == 0 {
+			file.SetRowStyle(sheet, curNum, curNum, orderStyle)
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateStart"], curNum), a.OrderStart)
 			orderEnd := ""
-			if a.OperEnd != "" {
-				t, err := strconv.Atoi(a.OperEnd)
+			term := ""
+			if a.OrderEnd != "" {
+				t, err := strconv.Atoi(a.OrderEnd)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse order date. error: %w", err)
 				}
-				orderEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+				end := time.Unix(int64(t), 0)
+				orderEnd = end.Format("02.01.2006 15:04")
+				start, err := time.Parse("02.01.2006 15:04:05", a.OrderStart)
+				if err != nil {
+					logger.Error("failed to parse order start. error: %w", err)
+				}
+				if err == nil {
+					term = fmt.Sprintf("%.2f", (end.Sub(start).Hours() / 24))
+				}
 			}
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), orderEnd)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["term"], curNum), term)
 			curNum++
+
+			file.SetRowStyle(sheet, curNum, curNum, posStyle)
+			file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle1)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
-
 			posEnd := ""
 			if a.PosEnd != "" {
 				t, err := strconv.Atoi(a.PosEnd)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse pos date. error: %w", err)
 				}
-				posEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+				posEnd = time.Unix(int64(t), 0).Format("02.01.2006 15:04")
 			}
-
 			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), posEnd)
+			curNum++
+
+			file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["operation"], curNum), a.OperTitle)
+			file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.OperEnd)
 			curNum++
 		} else {
 			if a.Number == analytics[i-1].Number {
-				if a.Number == analytics[i-1].Number && a.Ring == analytics[i-1].Ring {
+				if a.Position == analytics[i-1].Position && a.PosTitle == analytics[i-1].PosTitle && a.Ring == analytics[i-1].Ring {
+					file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["operation"], curNum), a.OperTitle)
 					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.OperEnd)
 					curNum++
 				} else {
+					file.SetRowStyle(sheet, curNum, curNum, posStyle)
+					file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle1)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
 					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
 					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
-					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.PosEnd)
+					posEnd := ""
+					if a.PosEnd != "" {
+						t, err := strconv.Atoi(a.PosEnd)
+						if err != nil {
+							return nil, fmt.Errorf("failed to parse pos date. error: %w", err)
+						}
+						posEnd = time.Unix(int64(t), 0).Format("02.01.2006 15:04")
+					}
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), posEnd)
+					curNum++
+
+					file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["operation"], curNum), a.OperTitle)
+					file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.OperEnd)
 					curNum++
 				}
 			} else {
+				file.SetRowStyle(sheet, curNum, curNum, orderStyle)
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateStart"], curNum), a.OrderStart)
 				orderEnd := ""
-				if a.OperEnd != "" {
-					t, err := strconv.Atoi(a.OperEnd)
+				term := ""
+				if a.OrderEnd != "" {
+					t, err := strconv.Atoi(a.OrderEnd)
 					if err != nil {
 						return nil, fmt.Errorf("failed to parse order date. error: %w", err)
 					}
-					orderEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+					end := time.Unix(int64(t), 0)
+					orderEnd = end.Format("02.01.2006 15:04")
+					start, err := time.Parse("02.01.2006 15:04:05", a.OrderStart)
+					if err != nil {
+						logger.Error("failed to parse order start. error: %w", err)
+					}
+					if err == nil {
+						term = fmt.Sprintf("%.2f", (end.Sub(start).Hours() / 24))
+					}
 				}
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), orderEnd)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["term"], curNum), term)
 				curNum++
+
+				file.SetRowStyle(sheet, curNum, curNum, posStyle)
+				file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle1)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["position"], curNum), a.Position)
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["title"], curNum), a.PosTitle)
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["ring"], curNum), a.Ring)
@@ -387,9 +485,15 @@ func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File
 					if err != nil {
 						return nil, fmt.Errorf("failed to parse pos date. error: %w", err)
 					}
-					posEnd = time.Unix(int64(t), 0).Format("02.01.2006")
+					posEnd = time.Unix(int64(t), 0).Format("02.01.2006 15:04")
 				}
 				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), posEnd)
+				curNum++
+
+				file.SetCellStyle(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), fmt.Sprintf("%s%d", columnAxis["number"], curNum), numberStyle)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["number"], curNum), a.Number)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["operation"], curNum), a.OperTitle)
+				file.SetCellValue(sheet, fmt.Sprintf("%s%d", columnAxis["dateEnd"], curNum), a.OperEnd)
 				curNum++
 			}
 		}

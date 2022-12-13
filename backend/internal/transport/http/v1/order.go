@@ -22,6 +22,7 @@ func (h *Handler) InitOrderRoutes(api *gin.RouterGroup) {
 		orders.GET("/:id", h.getOrder)
 		orders.GET("/number/:number", h.findOrders)
 		orders.PUT("/:id", h.updateOrder)
+		orders.DELETE("/:id", h.deleteOrder)
 
 		orders.GET("/analytics", h.getAnalytics)
 	}
@@ -149,6 +150,27 @@ func (h *Handler) updateOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Order updated successfully"})
+}
+
+func (h *Handler) deleteOrder(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.NewErrorResponse(c, http.StatusBadRequest, "empty id", "empty id param")
+		return
+	}
+
+	orderId, err := uuid.Parse(id)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
+		return
+	}
+
+	if err := h.services.Order.Delete(c, models.OrderDTO{Id: orderId}); err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+
+	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Order deleted successfully"})
 }
 
 func (h *Handler) getAnalytics(c *gin.Context) {

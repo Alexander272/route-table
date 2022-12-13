@@ -140,6 +140,10 @@ func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID, en
 		return nil, fmt.Errorf("failed to get positions for order. error: %w", err)
 	}
 
+	if len(positions) == 0 {
+		return positions, nil
+	}
+
 	t, err := strconv.Atoi(positions[0].Deadline)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse deadline. error: %w", err)

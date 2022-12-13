@@ -30,7 +30,7 @@ func (r *OrderRepo) Get(ctx context.Context, id uuid.UUID) (order models.OrderWi
 func (r *OrderRepo) GetAll(ctx context.Context) (orders []models.Order, err error) {
 	query := fmt.Sprintf(`SELECT id, number, done, date, deadline,
 		(SELECT count(case when done = true then done end)/count(done)::real FROM %s WHERE order_id=%s.id) as progress
-		FROM %s WHERE done=false ORDER BY deadline`, PositionsTable, OrdersTable, OrdersTable)
+		FROM %s WHERE done=false ORDER BY deadline, number`, PositionsTable, OrdersTable, OrdersTable)
 
 	if err := r.db.Select(&orders, query); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)

@@ -19,9 +19,10 @@ import { ICompletePosition, IPosition } from "../../../../types/positions"
 type Props = {
     position: IPosition
     operations: IOperation[]
+    changeErrorHandler: (error: string) => void
 }
 
-export const Operations: FC<Props> = ({ position, operations }) => {
+export const Operations: FC<Props> = ({ position, operations, changeErrorHandler }) => {
     const [operationIdx, setOperationIdx] = useState("0")
     const [remainder, setRemainder] = useState(0)
     const [count, setCount] = useState("0")
@@ -61,8 +62,12 @@ export const Operations: FC<Props> = ({ position, operations }) => {
     }
 
     const submitHandler = async () => {
+        changeErrorHandler("")
         if (+count > remainder || +count < 1) return
-        if (+count < remainder && reason.trim() === "") return
+        if (+count < remainder && reason.trim() === "") {
+            changeErrorHandler("Заполните причину")
+            return
+        }
 
         const operation: ICompleteOperation = {
             id: operations[+operationIdx].id || "",
@@ -80,73 +85,70 @@ export const Operations: FC<Props> = ({ position, operations }) => {
             operation: operation,
         }
 
-        await operationComplite(data)
+        try {
+            await operationComplite(data)
+        } catch (error) {
+            changeErrorHandler("Произошла ошибка")
+        }
         mutate(`/positions/${params.id}`)
     }
 
     return (
-        <Stack
-            direction={{ xs: "column", sm: "row" }}
-            divider={<Divider orientation='vertical' flexItem />}
-            spacing={{ xs: 1, sm: 2, md: 4 }}
-        >
-            <FormControl>
-                <InputLabel id='operation-label'>Операция</InputLabel>
-                <Select
-                    sx={{ minWidth: 220 }}
-                    labelId='operation-label'
-                    id='operation'
-                    value={operationIdx}
-                    label='Операция'
-                    size='small'
-                    onChange={operationHandler}
-                >
-                    {/* {operations?.map((o, i) => {
-                        if (!o.done) {
-                            return (
-                                <MenuItem key={o.id} value={i}>
-                                    {o.title}
-                                </MenuItem>
-                            )
-                        } else return null
-                    })} */}
-                    {operations?.map((o, i) => (
-                        <MenuItem key={o.id} value={i}>
-                            {o.title}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <TextField
-                sx={{ minWidth: 150 }}
-                id='count'
-                label='Количество'
-                variant='outlined'
-                type='number'
-                value={count}
-                onChange={countHandler}
-                size='small'
-                inputProps={{
-                    inputMode: "numeric",
-                    min: 1,
-                    max: remainder,
-                    // pattern: "[0-9]*",
-                }}
-            />
-            {+count < remainder && (
+        <>
+            <Stack
+                direction={{ xs: "column", sm: "row" }}
+                divider={<Divider orientation='vertical' flexItem />}
+                spacing={{ xs: 1, sm: 2, md: 4 }}
+            >
+                <FormControl>
+                    <InputLabel id='operation-label'>Операция</InputLabel>
+                    <Select
+                        sx={{ minWidth: 220 }}
+                        labelId='operation-label'
+                        id='operation'
+                        value={operationIdx}
+                        label='Операция'
+                        size='small'
+                        onChange={operationHandler}
+                    >
+                        {operations?.map((o, i) => (
+                            <MenuItem key={o.id} value={i}>
+                                {o.title}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <TextField
                     sx={{ minWidth: 150 }}
-                    id='reason'
-                    label='Причина'
+                    id='count'
+                    label='Количество'
                     variant='outlined'
+                    type='number'
+                    value={count}
+                    onChange={countHandler}
                     size='small'
-                    value={reason}
-                    onChange={reasonHandler}
+                    inputProps={{
+                        inputMode: "numeric",
+                        min: 1,
+                        max: remainder,
+                        // pattern: "[0-9]*",
+                    }}
                 />
-            )}
-            <Button variant='contained' onClick={submitHandler}>
-                Сделано
-            </Button>
-        </Stack>
+                {+count < remainder && (
+                    <TextField
+                        sx={{ minWidth: 150 }}
+                        id='reason'
+                        label='Причина'
+                        variant='outlined'
+                        size='small'
+                        value={reason}
+                        onChange={reasonHandler}
+                    />
+                )}
+                <Button variant='contained' onClick={submitHandler}>
+                    Сделано
+                </Button>
+            </Stack>
+        </>
     )
 }

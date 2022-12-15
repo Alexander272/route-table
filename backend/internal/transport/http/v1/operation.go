@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -14,6 +15,7 @@ func (h *Handler) InitOperationRoutes(api *gin.RouterGroup) {
 	operations := api.Group("/operations", h.middleware.UserIdentity)
 	{
 		operations.PUT("/:id", h.completeOperation)
+		operations.POST("/roolback/:id", h.roolbackOperation)
 	}
 }
 
@@ -46,4 +48,29 @@ func (h *Handler) completeOperation(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Operation updated successfully"})
+}
+
+func (h *Handler) roolbackOperation(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.NewErrorResponse(c, http.StatusBadRequest, "empty id", "empty id param")
+		return
+	}
+
+	uuId, err := uuid.Parse(id)
+	if err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
+		return
+	}
+
+	if err := h.services.Operation.Roolback(c, uuId); err != nil {
+		if errors.Is(err, models.ErrOperationNotFound) {
+			response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), err.Error())
+			return
+		}
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
+		return
+	}
+
+	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Operation roolback successfully"})
 }

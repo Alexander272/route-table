@@ -36,7 +36,8 @@ func (h *Handler) ordersParse(c *gin.Context) {
 		return
 	}
 
-	if fileHeader.Header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && !strings.Contains(fileHeader.Filename, "xls") {
+	if fileHeader.Header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" &&
+		!strings.Contains(fileHeader.Filename, "xls") {
 		response.NewErrorResponse(c, http.StatusInternalServerError, "invalid type file", "invalid file type")
 		return
 	}

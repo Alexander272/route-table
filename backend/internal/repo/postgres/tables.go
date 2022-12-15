@@ -9,4 +9,5 @@ const (
 	RolesTable         = "roles"
 	UsersTable         = "users"
 	DisplayTable       = "display"
+	ComplitedOperTable = "complited_operation"
 )

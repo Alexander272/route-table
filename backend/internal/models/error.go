@@ -10,4 +10,6 @@ var (
 	ErrPassword   = errors.New("passwords do not match")
 	ErrUsersEmpty = errors.New("user list is empty")
 	ErrUserExist  = errors.New("user already exists")
+
+	ErrOperationNotFound = errors.New("operation not found")
 )

@@ -34,6 +34,9 @@ var gasket map[string][]string = map[string][]string{
 	"СНП-А": {""},
 }
 
+// Создание позиций
+// каждая позиция привязывается к заказу, а также некоторые позици имеют два экземпляра и поэтому они связываются
+// между собой через поле Connected
 func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.UUID, positions [][]string) error {
 	operations := make([]models.OperationDTO, 0, 200)
 	pos := make([]models.PositionDTO, 0, len(positions))
@@ -93,6 +96,7 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 	return nil
 }
 
+// получение позиций с операциями
 func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (position models.Position, err error) {
 	position, err = s.repo.Get(ctx, positionId)
 	if err != nil {
@@ -108,6 +112,7 @@ func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID, enabled
 	return position, nil
 }
 
+// получение позиций с опрерациями и причинами
 func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (position models.PositionWithReason, err error) {
 	pos, err := s.repo.Get(ctx, positionId)
 	if err != nil {
@@ -134,6 +139,7 @@ func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UU
 	return position, nil
 }
 
+// получение списка позиций для заказа (готовые позиции отсутствуют)
 func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID, enabled pq.StringArray) (positions []models.PositionForOrder, err error) {
 	positions, err = s.repo.GetForOrder(ctx, orderId, enabled)
 	if err != nil {
@@ -156,6 +162,7 @@ func (s *PositionService) GetForOrder(ctx context.Context, orderId uuid.UUID, en
 	return positions, nil
 }
 
+// получение списка позиций для заказа вместе с готовыми позициями
 func (s *PositionService) GetFullForOrder(ctx context.Context, orderId uuid.UUID) (positions []models.PositionForOrder, err error) {
 	positions, err = s.repo.GetFullForOrder(ctx, orderId)
 	if err != nil {
@@ -174,6 +181,7 @@ func (s *PositionService) GetFullForOrder(ctx context.Context, orderId uuid.UUID
 	return positions, nil
 }
 
+// закрытие (выполнение) позиции
 func (s *PositionService) Complete(ctx context.Context, position models.PositionDTO) error {
 	if err := s.repo.Update(ctx, position); err != nil {
 		return fmt.Errorf("failed to complete position. error: %w", err)
@@ -181,6 +189,7 @@ func (s *PositionService) Complete(ctx context.Context, position models.Position
 	return nil
 }
 
+// закрытие операций и позиции, если операция финальная
 func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
 	if position.IsFinish {
 		var op1, op2 models.OperationDTO
@@ -238,6 +247,7 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 				Id:        o.Id,
 				Done:      remainder == 0,
 				Remainder: remainder,
+				Count:     position.Operation.Count,
 			}
 			if err := s.operation.Update(ctx, operation); err != nil {
 				return err

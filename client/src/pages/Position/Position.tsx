@@ -1,16 +1,51 @@
-import React from "react"
-import { Box, Container, Divider, Paper, Stack, Typography, CircularProgress } from "@mui/material"
-import { useParams } from "react-router-dom"
+import React, { useContext, useState } from "react"
+import {
+    Box,
+    Container,
+    Divider,
+    Paper,
+    Stack,
+    Typography,
+    CircularProgress,
+    IconButton,
+    Snackbar,
+    Alert,
+} from "@mui/material"
+import CloseIcon from "@mui/icons-material/Close"
+import { useNavigate, useParams } from "react-router-dom"
 import useSWR from "swr"
 import { IPosition } from "../../types/positions"
 import { fetcher } from "../../service/read"
 import { OperList } from "./components/List/List"
 import { Operations } from "./components/Operations/Operations"
+import { AuthContext } from "../../context/AuthProvider"
 
 export default function Position() {
     const params = useParams()
+    const navigate = useNavigate()
+
+    const { user } = useContext(AuthContext)
+
+    const [open, setOpen] = useState(false)
+    const [error, setError] = useState("")
 
     const { data: position } = useSWR<{ data: IPosition }>(`/positions/${params.id}`, fetcher)
+
+    const backHandler = () => {
+        navigate(-1)
+    }
+
+    const changeErrorHandler = (error: string) => {
+        setError(error)
+        if (error !== "") setOpen(true)
+    }
+
+    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === "clickaway") {
+            return
+        }
+        setOpen(false)
+    }
 
     return (
         <Container
@@ -21,6 +56,16 @@ export default function Position() {
                     <CircularProgress />
                 </Box>
             )}
+            <Snackbar
+                open={open}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                autoHideDuration={6000}
+                onClose={handleClose}
+            >
+                <Alert onClose={handleClose} severity='error' sx={{ width: "100%" }}>
+                    {error}
+                </Alert>
+            </Snackbar>
             {position && (
                 <Paper
                     elevation={3}
@@ -33,8 +78,15 @@ export default function Position() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
+                        position: "relative",
                     }}
                 >
+                    <IconButton
+                        onClick={backHandler}
+                        sx={{ position: "absolute", right: "3px", top: "3px" }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
                     <Typography
                         variant='h5'
                         component='h5'
@@ -73,12 +125,17 @@ export default function Position() {
                         )}
                     </Stack>
 
-                    <OperList operations={position?.data?.operations || []} />
+                    <OperList
+                        operations={position?.data?.operations || []}
+                        count={position.data.count}
+                        changeErrorHandler={changeErrorHandler}
+                    />
 
-                    {!position.data.done ? (
+                    {!position.data.done && user?.role !== "manager" ? (
                         <Operations
                             position={position.data}
                             operations={position?.data?.operations.filter(o => !o.done) || []}
+                            changeErrorHandler={changeErrorHandler}
                         />
                     ) : null}
                 </Paper>

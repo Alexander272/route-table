@@ -12,17 +12,20 @@ import (
 )
 
 type OperationService struct {
-	repo   repository.Operation
-	reason *ReasonService
+	repo      repository.Operation
+	complited *ComplitedOperationService
+	reason    *ReasonService
 }
 
-func NewOperationService(repo repository.Operation, reason *ReasonService) *OperationService {
+func NewOperationService(repo repository.Operation, reason *ReasonService, complited *ComplitedOperationService) *OperationService {
 	return &OperationService{
-		repo:   repo,
-		reason: reason,
+		repo:      repo,
+		complited: complited,
+		reason:    reason,
 	}
 }
 
+// Получение операций
 func (s *OperationService) Get(ctx context.Context, positionId uuid.UUID, enabled pq.StringArray) (operations []models.Operation, err error) {
 	operations, err = s.repo.Get(ctx, positionId, enabled)
 	if err != nil {
@@ -95,6 +98,7 @@ func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.U
 	return operations, nil
 }
 
+// создание операций
 func (s *OperationService) CreateFew(ctx context.Context, operations []models.OperationDTO) error {
 	if err := s.repo.CreateFew(ctx, operations); err != nil {
 		return fmt.Errorf("failed to create few operations. err: %w", err)
@@ -134,6 +138,7 @@ func (s *OperationService) Check(ctx context.Context, posId1, posId2 uuid.UUID, 
 	return op1, op2, nil
 }
 
+// закрытие текущей операции и всех не закрытых для позиции (вызывается только когда выполняется финальная операция)
 func (s *OperationService) Complete(ctx context.Context, operation models.OperationDTO) error {
 	if err := s.repo.Update(ctx, operation); err != nil {
 		return fmt.Errorf("failed to complete operation. error: %w", err)
@@ -144,6 +149,7 @@ func (s *OperationService) Complete(ctx context.Context, operation models.Operat
 	return nil
 }
 
+// обновление операции (либо уменьшение остатка и создание причины, либо закрытие)
 func (s *OperationService) Update(ctx context.Context, operation models.CompleteOperation) error {
 	oper := models.OperationDTO{
 		Id:        operation.Id,
@@ -165,6 +171,11 @@ func (s *OperationService) Update(ctx context.Context, operation models.Complete
 		if err != nil {
 			return err
 		}
+	}
+
+	_, err := s.complited.Create(ctx, operation)
+	if err != nil {
+		return err
 	}
 
 	if err := s.repo.Update(ctx, oper); err != nil {
@@ -200,6 +211,11 @@ func (s *OperationService) DeleteSkipped(ctx context.Context, positionId, operat
 			return fmt.Errorf("failed to delete few. error: %w", err)
 		}
 	}
+
+	return nil
+}
+
+func (s *OperationService) Roolback(ctx context.Context, operationId uuid.UUID) error {
 
 	return nil
 }

@@ -114,6 +114,7 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 	return nil
 }
 
+// Выборка до 5 заказов по части номера
 func (s *OrderService) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
 	orders, err = s.repo.Find(ctx, number)
 	if err != nil {
@@ -281,6 +282,7 @@ func (s *OrderService) Update(ctx context.Context, order models.OrderDTO) error 
 	return nil
 }
 
+// Удаление старых выполненых заказов
 func (s *OrderService) DeleteOld(ctx context.Context) error {
 	logger.Info("delete old order")
 
@@ -298,6 +300,7 @@ func (s *OrderService) Delete(ctx context.Context, order models.OrderDTO) error 
 	return nil
 }
 
+// Получение файла excel со статистикой по заказам
 func (s *OrderService) GetForAnalytics(ctx context.Context) (file *excelize.File, err error) {
 	analytics, err := s.repo.GetForAnalytics(ctx)
 	if err != nil {

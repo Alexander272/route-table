@@ -16,6 +16,7 @@ type Reason struct {
 }
 
 type PosWithReason struct {
+	Number   string `db:"number"`
 	PosTitle string `db:"pos_title"`
 	OpTitle  string `db:"op_title"`
 	Date     string `db:"date"`

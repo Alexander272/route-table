@@ -56,6 +56,11 @@ type Operation interface {
 	DeleteFew(context.Context, []uuid.UUID) error
 }
 
+type ComplitedOperation interface {
+	Create(context.Context, models.CompleteOperation) (uuid.UUID, error)
+	Delete(context.Context, models.ComplitedOperation) error
+}
+
 type Reason interface {
 	Get(context.Context) ([]models.PosWithReason, error)
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
@@ -90,6 +95,7 @@ type Repositories struct {
 	Order
 	Position
 	Operation
+	ComplitedOperation
 	Reason
 	Role
 	User
@@ -98,13 +104,14 @@ type Repositories struct {
 
 func NewRepo(db *sqlx.DB, redis redis.Cmdable) *Repositories {
 	return &Repositories{
-		RootOperation: postgres.NewRootOperationRepo(db),
-		Order:         postgres.NewOrderRepo(db),
-		Position:      postgres.NewPositionRepo(db),
-		Operation:     postgres.NewOperationRepo(db),
-		Reason:        postgres.NewReasonRepo(db),
-		Role:          postgres.NewRoleRepo(db),
-		User:          postgres.NewUserRepo(db),
-		Session:       redisRepo.NewSessionRepo(redis),
+		RootOperation:      postgres.NewRootOperationRepo(db),
+		Order:              postgres.NewOrderRepo(db),
+		Position:           postgres.NewPositionRepo(db),
+		Operation:          postgres.NewOperationRepo(db),
+		ComplitedOperation: postgres.NewComplitedOperationRepo(db),
+		Reason:             postgres.NewReasonRepo(db),
+		Role:               postgres.NewRoleRepo(db),
+		User:               postgres.NewUserRepo(db),
+		Session:            redisRepo.NewSessionRepo(redis),
 	}
 }

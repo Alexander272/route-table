@@ -40,3 +40,10 @@ type CompleteOperation struct {
 	Count     int       `json:"count"`
 	Reason    string    `json:"reason"`
 }
+
+type ComplitedOperation struct {
+	Id          uuid.UUID `json:"id"`
+	OperationId uuid.UUID `json:"operationId"`
+	Remainder   int       `json:"remainder"`
+	Count       int       `json:"count"`
+}

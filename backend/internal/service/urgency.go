@@ -26,6 +26,7 @@ func (s *UrgencyService) Get(ctx context.Context) models.Urgency {
 	return urgency
 }
 
+// изменение конфига программы (срочность заказов)
 func (s *UrgencyService) Change(ctx context.Context, urgency models.Urgency) error {
 	high, err := time.ParseDuration(fmt.Sprintf("%.1fh", urgency.High))
 	if err != nil {

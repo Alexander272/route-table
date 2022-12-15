@@ -18,14 +18,17 @@ func NewReasonRepo(db *sqlx.DB) *ReasonRepo {
 }
 
 func (r *ReasonRepo) Get(ctx context.Context) (reasons []models.PosWithReason, err error) {
-	query := fmt.Sprintf(`SELECT %s.title AS pos_title, %s.title AS op_title, %s.date, value FROM %s
+	query := fmt.Sprintf(`SELECT number, %s.title AS pos_title, %s.title AS op_title, %s.date, value FROM %s
 		INNER JOIN %s ON %s.operation_id = %s.id
 		INNER JOIN %s ON %s.operation_id = %s.id
-		INNER JOIN %s ON position_id = %s.id`,
+		INNER JOIN %s ON position_id = %s.id
+		INNER JOIN %s ON order_id = %s.id`,
 		PositionsTable, RootOperationTable, ReasonsTable, ReasonsTable,
 		OperationsTable, ReasonsTable, OperationsTable,
 		RootOperationTable, OperationsTable, RootOperationTable,
-		PositionsTable, PositionsTable)
+		PositionsTable, PositionsTable,
+		OrdersTable, OrdersTable,
+	)
 
 	if err := r.db.Select(&reasons, query); err != nil {
 		return nil, fmt.Errorf("failed to execute query. error: %w", err)

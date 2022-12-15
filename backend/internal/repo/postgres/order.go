@@ -99,7 +99,7 @@ func (r *OrderRepo) Compilte(ctx context.Context, order models.OrderDTO) error {
 }
 
 func (r *OrderRepo) DeleteOld(ctx context.Context, term time.Time) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE complited<$1", OrdersTable)
+	query := fmt.Sprintf("DELETE FROM %s WHERE done=true AND complited<$1 AND complited != ''", OrdersTable)
 
 	if _, err := r.db.Exec(query, term.Unix()); err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)

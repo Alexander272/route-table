@@ -36,6 +36,12 @@ type Operation interface {
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.CompleteOperation) error
+	Roolback(context.Context, uuid.UUID) error
+}
+
+type ComplitedOperation interface {
+	Create(context.Context, models.CompleteOperation) (uuid.UUID, error)
+	Delete(context.Context, models.ComplitedOperation) error
 }
 
 type Position interface {
@@ -95,6 +101,7 @@ type Urgency interface {
 type Services struct {
 	RootOperation
 	Operation
+	ComplitedOperation
 	Position
 	Order
 	Reason
@@ -118,7 +125,8 @@ type Deps struct {
 func NewServices(deps Deps) *Services {
 	rootOperation := NewRootOperationService(deps.Repos.RootOperation)
 	reason := NewReasonService(deps.Repos.Reason)
-	operation := NewOperationService(deps.Repos.Operation, reason)
+	complited := NewComplitedOperationService(deps.Repos.ComplitedOperation)
+	operation := NewOperationService(deps.Repos.Operation, reason, complited)
 	position := NewPositionService(deps.Repos.Position, operation, rootOperation)
 	order := NewOrderService(deps.Repos.Order, position, deps.Urgency, deps.OrdersTerm, deps.QueryDelay)
 	role := NewRoleService(deps.Repos.Role)

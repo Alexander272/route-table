@@ -1,0 +1,29 @@
+version: "3.4"
+
+services:
+    pgamin:
+        image: dpage/pgadmin4:6.17
+        container_name: dev-pgamin
+        restart: unless-stopped
+        environment:
+            PGADMIN_DEFAULT_EMAIL: 856319@gmail.com
+            PGADMIN_DEFAULT_PASSWORD: root
+        volumes:
+            - ./pgadmin:/var/lib/pgadmin/db
+        # extra_hosts:
+        #     - "host.docker.internal:127.0.0.1"
+        ports:
+            - "5050:80"
+            - "5051:443"
+    
+    postgres: 
+        image: postgres:13-alpine3.17
+        container_name: dev-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_PASSWORD: postgres
+        volumes:
+            - ./postgres:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        

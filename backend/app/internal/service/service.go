@@ -35,11 +35,12 @@ type Operation interface {
 	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
-	Update(context.Context, models.CompleteOperation) error
-	Rollback(context.Context, uuid.UUID) error
+	Update(ctx context.Context, positionId, groupId uuid.UUID, operation models.CompleteOperation) error
+	Rollback(context.Context, uuid.UUID, []string) error
 }
 
 type CompletedOperation interface {
+	Get(context.Context, uuid.UUID) ([]models.CompletedOperation, error)
 	Create(context.Context, models.CompleteOperation) (uuid.UUID, error)
 	Delete(context.Context, models.CompletedOperation) error
 }
@@ -49,6 +50,7 @@ type Position interface {
 	GetWithReasons(context.Context, uuid.UUID) (models.PositionWithReason, error)
 	CreateFew(context.Context, map[string]uuid.UUID, [][]string) error
 	Update(context.Context, models.CompletePosition) error
+	Rollback(context.Context, models.RollbackPosition) error
 }
 
 type Order interface {
@@ -68,6 +70,7 @@ type Reason interface {
 	Get(context.Context) ([]models.PosWithReason, error)
 	GetFile(context.Context) (*excelize.File, error)
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
+	DeleteFew(context.Context, []string) error
 }
 
 type Role interface {

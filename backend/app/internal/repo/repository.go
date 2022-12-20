@@ -40,24 +40,30 @@ type Position interface {
 	Create(context.Context, models.PositionDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.PositionDTO) error
 	Update(context.Context, models.PositionDTO) error
+	Rollback(context.Context, models.PositionDTO) error
 	Delete(context.Context, models.PositionDTO) error
 }
 
 type Operation interface {
 	Get(context.Context, uuid.UUID, pq.StringArray) ([]models.Operation, error)
 	GetAll(context.Context, uuid.UUID) ([]models.Operation, error)
+	GetLast(context.Context, uuid.UUID) (models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
+	GetSkipped(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error)
 	Create(context.Context, models.OperationDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error
+	UpdateFew(context.Context, []models.OperationDTO) error
 	CompleteSkipped(context.Context, models.OperationDTO) error
 	Delete(context.Context, models.OperationDTO) error
 	DeleteFew(context.Context, []uuid.UUID) error
 }
 
 type CompletedOperation interface {
-	Create(context.Context, models.CompleteOperation) (uuid.UUID, error)
+	Get(context.Context, uuid.UUID) ([]models.CompletedOperation, error)
+	Create(context.Context, models.CompletedOperation) (uuid.UUID, error)
+	CreateFew(ctx context.Context, operations []models.CompletedOperation) error
 	Delete(context.Context, models.CompletedOperation) error
 }
 
@@ -65,6 +71,7 @@ type Reason interface {
 	Get(context.Context) ([]models.PosWithReason, error)
 	Create(context.Context, models.ReasonDTO) (uuid.UUID, error)
 	Delete(context.Context, models.ReasonDTO) error
+	DeleteFew(context.Context, []string) error
 }
 
 type Role interface {

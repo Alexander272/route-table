@@ -2,11 +2,9 @@ package v1
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/Alexander272/route-table/internal/models/response"
-	"github.com/Alexander272/route-table/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -27,11 +25,6 @@ func (h *Handler) getUsers(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get users")
 		return
 	}
-
-	logger.Debug(time.Now().Format("02.01.2006 15:04"))
-	logger.Debug(time.Now().Location())
-	logger.Debug(time.Now().Local().Format("02.01.2006 15:04"))
-	logger.Debug(time.Now().UTC().Format("02.01.2006 15:04"))
 
 	c.JSON(http.StatusOK, response.DataResponse{Data: users, Count: len(users)})
 }

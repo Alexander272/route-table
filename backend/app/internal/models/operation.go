@@ -42,8 +42,9 @@ type CompleteOperation struct {
 }
 
 type CompletedOperation struct {
-	Id          uuid.UUID `json:"id"`
-	OperationId uuid.UUID `json:"operationId"`
-	Remainder   int       `json:"remainder"`
-	Count       int       `json:"count"`
+	Id          uuid.UUID `json:"id" db:"id"`
+	OperationId uuid.UUID `json:"operationId" db:"operation_id"`
+	GroupId     uuid.UUID `json:"groupId" db:"group_id"`
+	Remainder   int       `json:"remainder" db:"remainder"`
+	Count       int       `json:"count" db:"count"`
 }

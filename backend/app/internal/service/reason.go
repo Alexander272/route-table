@@ -92,3 +92,10 @@ func (s *ReasonService) Create(ctx context.Context, reason models.ReasonDTO) (id
 	}
 	return id, nil
 }
+
+func (s *ReasonService) DeleteFew(ctx context.Context, reasons []string) error {
+	if err := s.repo.DeleteFew(ctx, reasons); err != nil {
+		return fmt.Errorf("failed to delete few reasons. error: %w", err)
+	}
+	return nil
+}

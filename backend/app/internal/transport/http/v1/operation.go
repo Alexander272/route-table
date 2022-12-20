@@ -62,8 +62,14 @@ func (h *Handler) rollbackOperation(c *gin.Context) {
 		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "empty id param")
 		return
 	}
+	var dto models.RollbackPosition
+	if err := c.BindJSON(&dto); err != nil {
+		response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "invalid data send")
+		return
+	}
+	dto.OperationId = uuId
 
-	if err := h.services.Operation.Rollback(c, uuId); err != nil {
+	if err := h.services.Position.Rollback(c, dto); err != nil {
 		if errors.Is(err, models.ErrOperationNotFound) {
 			response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), err.Error())
 			return
@@ -72,5 +78,5 @@ func (h *Handler) rollbackOperation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.IdResponse{Id: id, Message: "Operation rollback successfully"})
+	c.JSON(http.StatusOK, response.IdResponse{Message: "Operation rollback successfully"})
 }

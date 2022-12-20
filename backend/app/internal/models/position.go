@@ -51,7 +51,7 @@ type PositionDTO struct {
 	Deadline  string    `json:"deadline"`
 	Connected uuid.UUID `json:"connected"`
 	Done      bool      `json:"done"`
-	Complited string    `json:"complited"`
+	Completed string    `json:"complited"`
 }
 
 type CompletePosition struct {
@@ -60,4 +60,12 @@ type CompletePosition struct {
 	IsFinish  bool              `json:"isFinish"`
 	Connected uuid.UUID         `json:"connected"`
 	Operation CompleteOperation `json:"operation"`
+}
+
+type RollbackPosition struct {
+	Id                uuid.UUID `json:"id"`
+	Connected         uuid.UUID `json:"connected"`
+	Reasons           []string  `json:"reasons"`
+	IsFinishOperation bool      `json:"isFinishOperation"`
+	OperationId       uuid.UUID
 }

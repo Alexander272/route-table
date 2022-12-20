@@ -17,13 +17,30 @@ func NewCompletedOperationService(repo repository.CompletedOperation) *Completed
 	return &CompletedOperationService{repo: repo}
 }
 
-func (s *CompletedOperationService) Create(ctx context.Context, operation models.CompleteOperation) (id uuid.UUID, err error) {
+func (s *CompletedOperationService) Get(ctx context.Context, operationId uuid.UUID) (operations []models.CompletedOperation, err error) {
+	operations, err = s.repo.Get(ctx, operationId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get completed operations. error: %w", err)
+	}
+
+	return operations, nil
+}
+
+func (s *CompletedOperationService) Create(ctx context.Context, operation models.CompletedOperation) (id uuid.UUID, err error) {
 	id, err = s.repo.Create(ctx, operation)
 	if err != nil {
 		return id, fmt.Errorf("failed to create completed operation. error: %w", err)
 	}
 
 	return id, nil
+}
+
+func (s *CompletedOperationService) CreateFew(ctx context.Context, operation []models.CompletedOperation) error {
+	if err := s.repo.CreateFew(ctx, operation); err != nil {
+		return fmt.Errorf("failed to create few completed operations. error: %w", err)
+	}
+
+	return nil
 }
 
 func (s *CompletedOperationService) Delete(ctx context.Context, operation models.CompletedOperation) error {

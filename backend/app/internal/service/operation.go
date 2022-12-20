@@ -149,17 +149,8 @@ func (s *OperationService) Complete(ctx context.Context, operation models.Operat
 	return nil
 }
 
-// обновление операции (либо уменьшение остатка и создание причины, либо закрытие)
-func (s *OperationService) Update(ctx context.Context, operation models.CompleteOperation) error {
-	oper := models.OperationDTO{
-		Id:        operation.Id,
-		Done:      operation.Done,
-		Remainder: operation.Remainder,
-	}
-	if operation.Done {
-		oper.Date = time.Now().Format("02.01.2006 15:04")
-	}
-
+// добавление причины, при наличии, обновление операций (связанных и всех предыдущих, если операция выполнена) и создание записей для отмены
+func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.UUID, operation models.CompleteOperation) error {
 	if operation.Reason != "" {
 		reason := models.ReasonDTO{
 			OperationId: operation.Id,
@@ -173,49 +164,106 @@ func (s *OperationService) Update(ctx context.Context, operation models.Complete
 		}
 	}
 
-	_, err := s.completed.Create(ctx, operation)
+	if operation.Id == uuid.Nil {
+		newOperation, err := s.repo.GetLast(ctx, positionId)
+		if err != nil {
+			return fmt.Errorf("failed to get operation. error: %w", err)
+		}
+		operation.Id = newOperation.Id
+	}
+
+	connected, err := s.GetConnected(ctx, positionId, operation.Id)
+	if err != nil {
+		return err
+	}
+	var skipped []models.Operation
+	if operation.Done {
+		skipped, err = s.repo.GetSkipped(ctx, positionId, operation.Id)
+		if err != nil {
+			return fmt.Errorf("failed to get skipped operations. error: %w", err)
+		}
+	}
+
+	connected = append(connected, models.Operation{
+		Id:        operation.Id,
+		Remainder: operation.Count,
+	})
+
+	var operations []models.OperationDTO
+	var completed []models.CompletedOperation
+
+	for i, o := range connected {
+		operations = append(operations, models.OperationDTO{
+			Id:        o.Id,
+			Done:      operation.Done,
+			Remainder: operation.Remainder,
+		})
+		if operation.Done {
+			operations[i].Date = time.Now().Format("02.01.2006 15:04")
+		}
+		completed = append(completed, models.CompletedOperation{
+			Id:          o.Id,
+			OperationId: o.Id,
+			GroupId:     groupId,
+			Remainder:   operation.Remainder,
+			Count:       o.Remainder,
+		})
+	}
+	for _, o := range skipped {
+		operations = append(operations, models.OperationDTO{
+			Id:        o.Id,
+			Done:      operation.Done,
+			Remainder: operation.Remainder,
+			Date:      time.Now().Format("02.01.2006 15:04"),
+		})
+		completed = append(completed, models.CompletedOperation{
+			Id:          o.Id,
+			OperationId: o.Id,
+			GroupId:     groupId,
+			Remainder:   operation.Remainder,
+			Count:       o.Remainder,
+		})
+	}
+
+	if err := s.repo.UpdateFew(ctx, operations); err != nil {
+		return fmt.Errorf("failed to update few operations. error: %w", err)
+	}
+	if err := s.completed.CreateFew(ctx, completed); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *OperationService) Rollback(ctx context.Context, operationId uuid.UUID, reasons []string) error {
+	if len(reasons) > 0 {
+		if err := s.reason.DeleteFew(ctx, reasons); err != nil {
+			return err
+		}
+	}
+
+	completed, err := s.completed.Get(ctx, operationId)
 	if err != nil {
 		return err
 	}
 
-	if err := s.repo.Update(ctx, oper); err != nil {
-		return fmt.Errorf("failed to update operation. error: %w", err)
+	var operations []models.OperationDTO
+	for _, c := range completed {
+		operations = append(operations, models.OperationDTO{
+			Id:        c.OperationId,
+			Done:      false,
+			Remainder: c.Remainder + c.Count,
+			Date:      "",
+		})
 	}
 
-	return nil
-}
-
-// Удаление пропущенных операций
-func (s *OperationService) DeleteSkipped(ctx context.Context, positionId, operationId uuid.UUID, count int) error {
-	operations, err := s.repo.GetAll(ctx, positionId)
-	if err != nil {
-		return fmt.Errorf("failed to get operation. error: %w", err)
+	if err := s.repo.UpdateFew(ctx, operations); err != nil {
+		return fmt.Errorf("failed to update few operations. error: %w", err)
 	}
 
-	stepNumber := 0
-	for _, o := range operations {
-		if o.Id == operationId {
-			stepNumber = o.StepNumber
-		}
+	if err := s.completed.Delete(ctx, models.CompletedOperation{GroupId: completed[0].GroupId}); err != nil {
+		return err
 	}
-
-	deleteId := make([]uuid.UUID, 0)
-	for _, o := range operations {
-		if o.StepNumber < stepNumber && !o.Done && o.Remainder == count {
-			deleteId = append(deleteId, o.Id)
-		}
-	}
-
-	if len(deleteId) > 0 {
-		if err := s.repo.DeleteFew(ctx, deleteId); err != nil {
-			return fmt.Errorf("failed to delete few. error: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (s *OperationService) Rollback(ctx context.Context, operationId uuid.UUID) error {
 
 	return nil
 }

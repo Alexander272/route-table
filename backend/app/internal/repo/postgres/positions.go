@@ -113,7 +113,7 @@ func (r *PositionRepo) CreateFew(ctx context.Context, positions []models.Positio
 func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET done=$1, complited=$2 WHERE id=$3", PositionsTable)
 
-	_, err := r.db.Exec(query, position.Done, position.Complited, position.Id)
+	_, err := r.db.Exec(query, position.Done, position.Completed, position.Id)
 	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
@@ -131,6 +131,27 @@ func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) 
 		if err != nil {
 			return fmt.Errorf("failed to execute query order. error: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (r *PositionRepo) Rollback(ctx context.Context, position models.PositionDTO) error {
+	query := fmt.Sprintf("UPDATE %s SET done=$1, complited=$2 WHERE id=$3 RETURNING order_id", PositionsTable)
+	var orderId uuid.UUID
+
+	row := r.db.QueryRow(query, position.Done, position.Completed, position.Id)
+	if row.Err() != nil {
+		return fmt.Errorf("failed to execute query. error: %w", row.Err())
+	}
+	if err := row.Scan(&orderId); err != nil {
+		return fmt.Errorf("failed to scan result. error: %w", err)
+	}
+
+	query = fmt.Sprintf(`UPDATE %s SET done=$1, complited=$2 WHERE id=$3`, OrdersTable)
+	_, err := r.db.Exec(query, false, "", orderId)
+	if err != nil {
+		return fmt.Errorf("failed to execute query order. error: %w", err)
 	}
 
 	return nil

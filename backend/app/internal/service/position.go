@@ -35,7 +35,7 @@ var gasket map[string][]string = map[string][]string{
 }
 
 // Создание позиций
-// каждая позиция привязывается к заказу, а также некоторые позици имеют два экземпляра и поэтому они связываются
+// каждая позиция привязывается к заказу, а также некоторые позиции имеют два экземпляра и поэтому они связываются
 // между собой через поле Connected
 func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.UUID, positions [][]string) error {
 	operations := make([]models.OperationDTO, 0, 200)
@@ -112,7 +112,7 @@ func (s *PositionService) Get(ctx context.Context, positionId uuid.UUID, enabled
 	return position, nil
 }
 
-// получение позиций с опрерациями и причинами
+// получение позиций с операциями и причинами
 func (s *PositionService) GetWithReasons(ctx context.Context, positionId uuid.UUID) (position models.PositionWithReason, err error) {
 	pos, err := s.repo.Get(ctx, positionId)
 	if err != nil {
@@ -189,75 +189,60 @@ func (s *PositionService) Complete(ctx context.Context, position models.Position
 	return nil
 }
 
-// закрытие операций и позиции, если операция финальная
+// закрытие или обновление операций и закрытие позиции (и связанной тоже), если выполнена финальная операция
 func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
 	if position.IsFinish {
-		var op1, op2 models.OperationDTO
 		if position.Connected != uuid.Nil {
-			var err error
-			op1, op2, err = s.operation.Check(ctx, position.Id, position.Connected, position.Operation.Done, position.Operation.Remainder)
-			if err != nil {
-				return err
-			}
+			if position.Operation.Done {
+				pos := models.PositionDTO{
+					Id:        position.Id,
+					Done:      position.Operation.Done,
+					Completed: fmt.Sprintf("%d", time.Now().Unix()),
+				}
+				if err := s.Complete(ctx, pos); err != nil {
+					return err
+				}
 
-			if err := s.operation.Complete(ctx, op2); err != nil {
-				return err
-			}
-			if op2.Done {
-				comlited := fmt.Sprintf("%d", time.Now().Unix())
-				if err := s.Complete(ctx, models.PositionDTO{Id: position.Connected, Done: op2.Done, Complited: comlited}); err != nil {
+				pos.Id = position.Connected
+				if err := s.Complete(ctx, pos); err != nil {
 					return err
 				}
 			}
-		} else {
-			op1 = models.OperationDTO{
-				Id:         position.Operation.Id,
-				PositionId: position.Id,
-				Done:       position.Operation.Done,
-				Remainder:  position.Operation.Remainder,
-				Date:       time.Now().Format("02.01.2006 15:04"),
-			}
 		}
-
-		if err := s.operation.Complete(ctx, op1); err != nil {
-			return err
-		}
-		if op1.Done {
-			comlited := fmt.Sprintf("%d", time.Now().Unix())
-			if err := s.Complete(ctx, models.PositionDTO{Id: position.Id, Done: op1.Done, Complited: comlited}); err != nil {
-				return err
-			}
-		}
-
-		return nil
 	}
 
-	connected, err := s.operation.GetConnected(ctx, position.Id, position.Operation.Id)
-	if err != nil {
+	groupId := uuid.New()
+
+	if err := s.operation.Update(ctx, position.Id, groupId, position.Operation); err != nil {
 		return err
 	}
-
-	if err := s.operation.Update(ctx, position.Operation); err != nil {
-		return err
-	}
-	if len(connected) > 0 {
-		for _, o := range connected {
-			remainder := o.Remainder - position.Operation.Count
-			operation := models.CompleteOperation{
-				Id:        o.Id,
-				Done:      remainder == 0,
-				Remainder: remainder,
-				Count:     position.Operation.Count,
-			}
-			if err := s.operation.Update(ctx, operation); err != nil {
+	if position.IsFinish {
+		if position.Connected != uuid.Nil {
+			position.Operation.Id = uuid.Nil
+			if err := s.operation.Update(ctx, position.Connected, groupId, position.Operation); err != nil {
 				return err
 			}
 		}
 	}
 
-	// if err := s.operation.DeleteSkipped(ctx, position.Id, position.Operation.Id, position.Count); err != nil {
-	// 	return err
-	// }
+	return nil
+}
+
+func (s *PositionService) Rollback(ctx context.Context, position models.RollbackPosition) error {
+	if position.IsFinishOperation {
+		if err := s.repo.Rollback(ctx, models.PositionDTO{Done: false, Completed: "", Id: position.Id}); err != nil {
+			return fmt.Errorf("failed to rollback position. error: %w", err)
+		}
+		if position.Connected != uuid.Nil {
+			if err := s.repo.Rollback(ctx, models.PositionDTO{Done: false, Completed: "", Id: position.Connected}); err != nil {
+				return fmt.Errorf("failed to rollback position. error: %w", err)
+			}
+		}
+	}
+
+	if err := s.operation.Rollback(ctx, position.OperationId, position.Reasons); err != nil {
+		return err
+	}
 
 	return nil
 }

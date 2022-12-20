@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	if err := gotenv.Load("../.env"); err != nil {
+	if err := gotenv.Load("../../.env"); err != nil {
 		logger.Fatalf("error loading env variables: %s", err.Error())
 	}
 	conf, err := config.Init("configs")

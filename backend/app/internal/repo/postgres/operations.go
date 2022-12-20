@@ -40,6 +40,16 @@ func (r *OperationRepo) GetAll(ctx context.Context, positionId uuid.UUID) (opera
 	return operations, nil
 }
 
+func (r *OperationRepo) GetLast(ctx context.Context, positionId uuid.UUID) (operation models.Operation, err error) {
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
+		WHERE position_id=$1  ORDER BY step_number DESC LIMIT 1`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
+
+	if err := r.db.Get(&operation, query, positionId); err != nil {
+		return operation, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return operation, nil
+}
+
 func (r *OperationRepo) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {
 	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number, is_finish, %s.id as reason_id, value, %s.date
   		FROM %s INNER JOIN %s ON %s.operation_id=%s.id LEFT JOIN %s ON %s.id=%s.operation_id 
@@ -62,6 +72,28 @@ func (r *OperationRepo) GetConnected(ctx context.Context, positionId, operationI
 	if err := r.db.Select(&operations, query, positionId, operationId); err != nil {
 		return operations, fmt.Errorf("failed to execute query. error: %w", err)
 	}
+	return operations, nil
+}
+
+// Получение предыдущих операций
+func (r *OperationRepo) GetSkipped(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error) {
+	query := fmt.Sprintf(`
+		SELECT %s.id, remainder FROM %s 
+		INNER JOIN %s ON operation_id=%s.id
+		WHERE position_id=$1 AND done=false AND step_number < (
+			SELECT step_number FROM %s 
+			INNER JOIN %s ON operation_id=%s.id
+			WHERE operations.id=$2
+		)
+	`, OperationsTable, OperationsTable,
+		RootOperationTable, RootOperationTable,
+		OperationsTable, RootOperationTable, RootOperationTable,
+	)
+
+	if err := r.db.Select(&operations, query, positionId, operationId); err != nil {
+		return operations, fmt.Errorf("failed to execute query. error: %w", err)
+	}
+
 	return operations, nil
 }
 
@@ -105,6 +137,30 @@ func (r *OperationRepo) Update(ctx context.Context, operation models.OperationDT
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
 
+	return nil
+}
+
+func (r *OperationRepo) UpdateFew(ctx context.Context, operations []models.OperationDTO) error {
+	args := make([]interface{}, 0)
+	values := make([]string, 0, len(operations))
+
+	c := 4
+	for i, p := range operations {
+		values = append(values, fmt.Sprintf("($%d::uuid, $%d::boolean, $%d::integer, $%d)", i*c+1, i*c+2, i*c+3, i*c+4))
+		args = append(args, p.Id, p.Done, p.Remainder, p.Date)
+	}
+
+	query := fmt.Sprintf(`
+		UPDATE %s
+		SET done=new_values.done, remainder=new_values.remainder, date=new_values.date
+		FROM (VALUES %s) as new_values(id, done, remainder, date)
+		WHERE %s.id = new_values.id;
+	`, OperationsTable, strings.Join(values, ", "), OperationsTable)
+
+	_, err := r.db.Exec(query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
 	return nil
 }
 

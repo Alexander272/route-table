@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Alexander272/route-table/internal/models"
 	"github.com/google/uuid"
@@ -52,6 +53,25 @@ func (r *ReasonRepo) Delete(ctx context.Context, reason models.ReasonDTO) error 
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", ReasonsTable)
 
 	if _, err := r.db.Exec(query, reason.Id); err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return nil
+}
+
+func (r *ReasonRepo) DeleteFew(ctx context.Context, reasons []string) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id IN (", ReasonsTable)
+	args := make([]interface{}, 0)
+	values := make([]string, 0, len(reasons))
+
+	for i, p := range reasons {
+		values = append(values, fmt.Sprintf("$%d", i+1))
+		args = append(args, p)
+	}
+	query += strings.Join(values, ", ")
+	query += ")"
+
+	_, err := r.db.Exec(query, args...)
+	if err != nil {
 		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
 	return nil

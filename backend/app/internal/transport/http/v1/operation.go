@@ -39,7 +39,7 @@ func (h *Handler) completeOperation(c *gin.Context) {
 	}
 	dto.Id = uuId
 
-	if err := h.services.Position.Update(c, dto); err != nil {
+	if err := h.services.Position.Action(c, dto); err != nil {
 		if strings.Contains(err.Error(), "connected operation not completed") {
 			response.NewErrorResponse(c, http.StatusBadRequest, err.Error(), "connected operation not completed")
 			return

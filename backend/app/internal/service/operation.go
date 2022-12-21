@@ -235,6 +235,32 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 	return nil
 }
 
+// обновление количества
+func (s *OperationService) UpdateCount(ctx context.Context, position models.UpdateCount) error {
+	operations, err := s.repo.GetAll(ctx, position.Id)
+	if err != nil {
+		return fmt.Errorf("failed to get operations. error: %w", err)
+	}
+
+	var updatedOperations []models.OperationDTO
+	addRemainder := position.Count - operations[len(operations)-1].Remainder
+	for _, o := range operations {
+		updatedOperations = append(updatedOperations, models.OperationDTO{
+			Id:        o.Id,
+			Done:      false,
+			Remainder: o.Remainder + addRemainder,
+			Date:      "",
+		})
+	}
+
+	if err := s.repo.UpdateFew(ctx, updatedOperations); err != nil {
+		return fmt.Errorf("failed to update few operations. error: %w", err)
+	}
+
+	return nil
+}
+
+// откат операции или группы операций
 func (s *OperationService) Rollback(ctx context.Context, operationId uuid.UUID, reasons []string) error {
 	if len(reasons) > 0 {
 		if err := s.reason.DeleteFew(ctx, reasons); err != nil {

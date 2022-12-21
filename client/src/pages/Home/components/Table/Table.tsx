@@ -63,17 +63,14 @@ export const OrderTable: FC<Props> = () => {
 		navigate(`positions/${id}`)
 	}
 
-	const filterHandler = useCallback(
-		(search: string) => {
-			if (search) setPositions(order?.data.positions.filter(p => p.position.toString() === search) || [])
-			else setPositions(order?.data.positions || [])
-		},
-		[order]
-	)
+	const filterHandler = useCallback(() => {
+		if (searchValue) setPositions(order?.data.positions.filter(p => p.position.toString() === searchValue) || [])
+		else setPositions(order?.data.positions || [])
+	}, [order, searchValue])
 
 	useEffect(() => {
-		filterHandler(searchValue)
-	}, [searchValue, filterHandler])
+		filterHandler()
+	}, [filterHandler])
 
 	const searchHandler = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		setSearch(event.target.value)

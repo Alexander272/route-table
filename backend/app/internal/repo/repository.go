@@ -39,7 +39,8 @@ type Position interface {
 	Get(context.Context, uuid.UUID) (models.Position, error)
 	Create(context.Context, models.PositionDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.PositionDTO) error
-	Update(context.Context, models.PositionDTO) error
+	Complete(context.Context, models.PositionDTO) error
+	UpdateCount(context.Context, models.UpdateCount) error
 	Rollback(context.Context, models.PositionDTO) error
 	Delete(context.Context, models.PositionDTO) error
 }

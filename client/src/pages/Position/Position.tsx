@@ -19,6 +19,7 @@ import { fetcher } from '../../service/read'
 import { OperList } from './components/List/List'
 import { Operations } from './components/Operations/Operations'
 import { AuthContext } from '../../context/AuthProvider'
+import { Edit } from './components/Edit/Edit'
 
 export default function Position() {
 	const params = useParams()
@@ -88,7 +89,7 @@ export default function Position() {
 						color='primary'
 						sx={{ textAlign: 'center', marginBottom: 2, wordBreak: 'break-all' }}
 					>
-						{position.data.title}
+						{position.data.title} {user?.role === 'master' && <Edit position={position?.data} />}
 					</Typography>
 					<Stack
 						direction={{ xs: 'column', sm: 'row' }}

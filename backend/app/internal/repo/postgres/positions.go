@@ -110,7 +110,7 @@ func (r *PositionRepo) CreateFew(ctx context.Context, positions []models.Positio
 	return nil
 }
 
-func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) error {
+func (r *PositionRepo) Complete(ctx context.Context, position models.PositionDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET done=$1, complited=$2 WHERE id=$3", PositionsTable)
 
 	_, err := r.db.Exec(query, position.Done, position.Completed, position.Id)
@@ -131,6 +131,16 @@ func (r *PositionRepo) Update(ctx context.Context, position models.PositionDTO) 
 		if err != nil {
 			return fmt.Errorf("failed to execute query order. error: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (r *PositionRepo) UpdateCount(ctx context.Context, position models.UpdateCount) error {
+	query := fmt.Sprintf(`UPDATE %s SET count=$1 WHERE id=$2`, PositionsTable)
+
+	if _, err := r.db.Exec(query, position.Count, position.Id); err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
 	}
 
 	return nil

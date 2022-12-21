@@ -40,3 +40,9 @@ export interface IRollbackPosition {
 	reasons: string[]
 	isFinishOperation: boolean
 }
+
+export interface IUpdateCount {
+	id: string
+	count: number
+	done: boolean
+}

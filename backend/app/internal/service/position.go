@@ -185,14 +185,14 @@ func (s *PositionService) GetFullForOrder(ctx context.Context, orderId uuid.UUID
 
 // закрытие (выполнение) позиции
 func (s *PositionService) Complete(ctx context.Context, position models.PositionDTO) error {
-	if err := s.repo.Update(ctx, position); err != nil {
+	if err := s.repo.Complete(ctx, position); err != nil {
 		return fmt.Errorf("failed to complete position. error: %w", err)
 	}
 	return nil
 }
 
 // закрытие или обновление операций и закрытие позиции (и связанной тоже), если выполнена финальная операция
-func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
+func (s *PositionService) Action(ctx context.Context, position models.CompletePosition) error {
 	if position.IsFinish {
 		if position.Operation.Done {
 			pos := models.PositionDTO{
@@ -230,6 +230,21 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 	return nil
 }
 
+func (s *PositionService) UpdateCount(ctx context.Context, position models.UpdateCount) error {
+	if !position.Done {
+		if err := s.operation.UpdateCount(ctx, position); err != nil {
+			return err
+		}
+	}
+
+	if err := s.repo.UpdateCount(ctx, position); err != nil {
+		return fmt.Errorf("failed to update count. error: %w", err)
+	}
+
+	return nil
+}
+
+// откат изменений позиции (и заказа, если он закрылся) и операций
 func (s *PositionService) Rollback(ctx context.Context, position models.RollbackPosition) error {
 	if err := s.operation.Rollback(ctx, position.OperationId, position.Reasons); err != nil {
 		return err

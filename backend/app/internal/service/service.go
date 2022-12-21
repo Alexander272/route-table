@@ -19,6 +19,7 @@ var Template models.Template = models.Template{
 	Order:    18,
 	Title:    3,
 	Position: 6,
+	Marking:  7,
 	Count:    10,
 	Deadline: 5,
 }
@@ -36,6 +37,7 @@ type Operation interface {
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(ctx context.Context, positionId, groupId uuid.UUID, operation models.CompleteOperation) error
+	UpdateCount(context.Context, models.UpdateCount) error
 	Rollback(context.Context, uuid.UUID, []string) error
 }
 
@@ -49,7 +51,8 @@ type Position interface {
 	Get(context.Context, uuid.UUID, pq.StringArray) (models.Position, error)
 	GetWithReasons(context.Context, uuid.UUID) (models.PositionWithReason, error)
 	CreateFew(context.Context, map[string]uuid.UUID, [][]string) error
-	Update(context.Context, models.CompletePosition) error
+	Action(context.Context, models.CompletePosition) error
+	UpdateCount(context.Context, models.UpdateCount) error
 	Rollback(context.Context, models.RollbackPosition) error
 }
 

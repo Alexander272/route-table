@@ -1,11 +1,8 @@
-import { IconButton, List, ListItem, Stack, Typography } from '@mui/material'
-import RemoveIcon from '@mui/icons-material/RemoveCircleOutline'
+import { List, ListItem, Stack, Typography } from '@mui/material'
 import React, { FC } from 'react'
 import { IOperation } from '../../../../types/operations'
-import { rollbackOperation } from '../../../../service/operation'
-import { useParams } from 'react-router-dom'
-import { useSWRConfig } from 'swr'
-import { IPosition, IRollbackPosition } from '../../../../types/positions'
+import { IPosition } from '../../../../types/positions'
+import { Rollback } from './Rollback'
 
 type Props = {
 	position: IPosition
@@ -15,25 +12,7 @@ type Props = {
 }
 
 export const OperList: FC<Props> = ({ position, operations, count, changeErrorHandler }) => {
-	const params = useParams()
-	const { mutate } = useSWRConfig()
-
 	const isFinish = operations[operations.length - 1].done
-
-	const rollbackHandler = (operation: IOperation) => async () => {
-		try {
-			const pos: IRollbackPosition = {
-				id: position.id,
-				connected: position.connected,
-				reasons: operation.reasons?.map(r => r.id) || [],
-				isFinishOperation: operation.isFinish,
-			}
-			await rollbackOperation(operation.id, pos)
-		} catch (error) {
-			changeErrorHandler('Отмена операции не доступна')
-		}
-		mutate(`/positions/${params.id}`)
-	}
 
 	return (
 		<List dense sx={{ marginY: 1, width: '100%', maxWidth: '800px' }}>
@@ -42,17 +21,21 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 					{o.reasons ? (
 						<>
 							<Typography sx={{ flexBasis: '40%' }}>{o.title}</Typography>
-							<Typography sx={{ fontSize: 16, flexBasis: '25%' }} color='primary'>
-								Осталось: {o.remainder}{' '}
-								<IconButton
-									aria-label='delete'
-									size='small'
-									sx={{ padding: 0, marginLeft: 1 }}
-									onClick={rollbackHandler(o)}
+							<Stack direction={'row'} alignItems='center' sx={{ flexBasis: '25%' }}>
+								<Typography
+									sx={{ fontSize: 16 }}
+									color={isFinish ? 'green' : o.done ? 'red' : 'primary'}
 								>
-									<RemoveIcon color='error' />
-								</IconButton>
-							</Typography>
+									Осталось: {o.remainder}
+								</Typography>
+								{o.remainder < count && (
+									<Rollback
+										position={position}
+										operation={o}
+										changeErrorHandler={changeErrorHandler}
+									/>
+								)}
+							</Stack>
 							<Stack sx={{ flexBasis: '35%' }}>
 								{o.reasons.map(r => (
 									<Typography key={r.id}>
@@ -72,14 +55,11 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 									Осталось: {o.remainder}
 								</Typography>
 								{o.remainder < count && (
-									<IconButton
-										aria-label='delete'
-										size='small'
-										sx={{ padding: 0, marginLeft: 1 }}
-										onClick={rollbackHandler(o)}
-									>
-										<RemoveIcon color='error' />
-									</IconButton>
+									<Rollback
+										position={position}
+										operation={o}
+										changeErrorHandler={changeErrorHandler}
+									/>
 								)}
 							</Stack>
 						</>

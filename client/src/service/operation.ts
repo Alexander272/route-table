@@ -1,7 +1,7 @@
 import { ICompletePosition, IRollbackPosition } from '../types/positions'
 import api from './api'
 
-export const operationComplite = async (data: ICompletePosition) => {
+export const operationComplete = async (data: ICompletePosition) => {
 	try {
 		await api.put(`/operations/${data.id}`, data)
 	} catch (error) {

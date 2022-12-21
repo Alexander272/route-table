@@ -69,6 +69,7 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 				Ring:     v,
 			})
 
+			// выбираем из списка основных операций те, что подходят для нашей позиции
 			for _, r := range root {
 				if strings.Contains(r.Gasket, row[1]) {
 					opId := uuid.New()
@@ -230,6 +231,10 @@ func (s *PositionService) Update(ctx context.Context, position models.CompletePo
 }
 
 func (s *PositionService) Rollback(ctx context.Context, position models.RollbackPosition) error {
+	if err := s.operation.Rollback(ctx, position.OperationId, position.Reasons); err != nil {
+		return err
+	}
+
 	if position.IsFinishOperation {
 		if err := s.repo.Rollback(ctx, models.PositionDTO{Done: false, Completed: "", Id: position.Id}); err != nil {
 			return fmt.Errorf("failed to rollback position. error: %w", err)
@@ -239,10 +244,6 @@ func (s *PositionService) Rollback(ctx context.Context, position models.Rollback
 				return fmt.Errorf("failed to rollback position. error: %w", err)
 			}
 		}
-	}
-
-	if err := s.operation.Rollback(ctx, position.OperationId, position.Reasons); err != nil {
-		return err
 	}
 
 	return nil

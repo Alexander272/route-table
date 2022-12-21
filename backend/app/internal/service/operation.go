@@ -247,6 +247,10 @@ func (s *OperationService) Rollback(ctx context.Context, operationId uuid.UUID, 
 		return err
 	}
 
+	if len(completed) == 0 {
+		return fmt.Errorf("completed operation not found")
+	}
+
 	var operations []models.OperationDTO
 	for _, c := range completed {
 		operations = append(operations, models.OperationDTO{

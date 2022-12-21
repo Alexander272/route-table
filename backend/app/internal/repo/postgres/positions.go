@@ -48,7 +48,7 @@ func (r *PositionRepo) GetForOrder(ctx context.Context, orderId uuid.UUID, enabl
 			position_id=%s.id AND done=false AND remainder<=%s.count ORDER BY title LIMIT 1) as cur_operation 
 		FROM %s INNER JOIN %s ON order_id = %s.id WHERE order_id=$1 AND (
 			SELECT count(case when done = false then done end) FROM %s INNER JOIN %s ON operation_id=%s.id
-			WHERE array[%s.id] <@ $2 AND position_id=%s.id
+			WHERE array[%s.type_id] <@ $2 AND position_id=%s.id
   		)>0 ORDER BY done, position`,
 		PositionsTable, OrdersTable, PositionsTable,
 		OperationsTable, RootOperationTable, RootOperationTable, PositionsTable,

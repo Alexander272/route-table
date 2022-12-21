@@ -44,15 +44,15 @@ type AvailablePositions struct {
 
 // Прокладки которые будет вносится в базу
 var availablePositions []AvailablePositions = []AvailablePositions{
-	{Title: "СНП-Д", Type: "СНП"},
-	{Title: "СНП-Г", Type: "СНП"},
-	{Title: "СНП-В", Type: "СНП"},
-	{Title: "СНП-Б", Type: "СНП"},
-	{Title: "СНП-А", Type: "СНП"},
+	{Title: "СНП-Д", Type: "СНП-Д"},
+	{Title: "СНП-Г", Type: "СНП-Г"},
+	{Title: "СНП-В", Type: "СНП-В"},
+	{Title: "СНП-Б", Type: "СНП-Б"},
+	{Title: "СНП-А", Type: "СНП-А"},
 }
 
-//* Загрузка заказа
-// Пробегемся по всем позициям и добавляем их в массив, который после пердаем в функцию для создания позиций,
+// * Загрузка заказа
+// Пробегаемся по всем позициям и добавляем их в массив, который после передаем в функцию для создания позиций,
 // если номера заказа нет мы его создаем
 func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 	orders := make(map[string]uuid.UUID, 0)
@@ -77,11 +77,11 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 			continue
 		}
 
+		// сравниваем название текущей позиции со списком доступных позиций
 		for _, v := range availablePositions {
 			if strings.Contains(row[Template.Title], v.Title) {
-				positions = append(positions, row)
-
 				parts := strings.Split(row[Template.Order], " ")
+				// смотрим создавали ли мы такой заказ, если нет то создаем и записываем его id
 				_, ok := orders[parts[2]]
 				if !ok {
 					deadline, err := time.Parse("02.01.2006", row[Template.Deadline])
@@ -101,6 +101,8 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 				row[Template.Order] = parts[2]
 				row[0] = v.Title
 				row[1] = v.Type
+
+				positions = append(positions, row)
 			}
 		}
 	}
@@ -114,7 +116,7 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 	return nil
 }
 
-// Выборка до 5 заказов по части номера
+// Выборка по части номера до 5 заказов
 func (s *OrderService) Find(ctx context.Context, number string) (orders []models.FindedOrder, err error) {
 	orders, err = s.repo.Find(ctx, number)
 	if err != nil {
@@ -124,7 +126,7 @@ func (s *OrderService) Find(ctx context.Context, number string) (orders []models
 	return orders, nil
 }
 
-// Получеам список всех заказов, добавляем срочность и группируем по дате отгрузки
+// Получаем список всех заказов, добавляем срочность и группируем по дате отгрузки
 func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder, err error) {
 	o, err := s.repo.GetAll(ctx)
 	if err != nil {
@@ -282,7 +284,7 @@ func (s *OrderService) Update(ctx context.Context, order models.OrderDTO) error 
 	return nil
 }
 
-// Удаление старых выполненых заказов
+// Удаление старых выполненных заказов
 func (s *OrderService) DeleteOld(ctx context.Context) error {
 	logger.Info("delete old order")
 

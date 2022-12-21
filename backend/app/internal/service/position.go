@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Alexander272/route-table/internal/models"
@@ -69,7 +70,7 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 			})
 
 			for _, r := range root {
-				if r.Gasket == row[1] {
+				if strings.Contains(r.Gasket, row[1]) {
 					opId := uuid.New()
 					operations = append(operations, models.OperationDTO{
 						Id:          opId,
@@ -192,17 +193,17 @@ func (s *PositionService) Complete(ctx context.Context, position models.Position
 // закрытие или обновление операций и закрытие позиции (и связанной тоже), если выполнена финальная операция
 func (s *PositionService) Update(ctx context.Context, position models.CompletePosition) error {
 	if position.IsFinish {
-		if position.Connected != uuid.Nil {
-			if position.Operation.Done {
-				pos := models.PositionDTO{
-					Id:        position.Id,
-					Done:      position.Operation.Done,
-					Completed: fmt.Sprintf("%d", time.Now().Unix()),
-				}
-				if err := s.Complete(ctx, pos); err != nil {
-					return err
-				}
+		if position.Operation.Done {
+			pos := models.PositionDTO{
+				Id:        position.Id,
+				Done:      position.Operation.Done,
+				Completed: fmt.Sprintf("%d", time.Now().Unix()),
+			}
+			if err := s.Complete(ctx, pos); err != nil {
+				return err
+			}
 
+			if position.Connected != uuid.Nil {
 				pos.Id = position.Connected
 				if err := s.Complete(ctx, pos); err != nil {
 					return err

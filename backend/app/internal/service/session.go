@@ -127,16 +127,16 @@ func (s *SessionService) TokenParse(token string) (user models.UserWithRole, err
 	}
 
 	op := r["operations"].([]interface{})
-	oprations := make([]string, 0, len(op))
+	operations := make([]string, 0, len(op))
 	for _, v := range op {
-		oprations = append(oprations, v.(string))
+		operations = append(operations, v.(string))
 	}
 
 	role := models.Role{
 		Id:         roleId,
 		Title:      r["title"].(string),
 		Role:       r["role"].(string),
-		Operations: oprations,
+		Operations: operations,
 	}
 
 	userId, err := uuid.Parse(claims["userId"].(string))

@@ -60,6 +60,7 @@ func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.U
 				Done:       owr.Done,
 				Remainder:  owr.Remainder,
 				IsFinish:   owr.IsFinish,
+				OpDate:     owr.OpDate,
 				StepNumber: owr.StepNumber,
 			})
 			if owr.Value != nil {
@@ -83,6 +84,7 @@ func (s *OperationService) GetWithReasons(ctx context.Context, positionId uuid.U
 					Done:       owr.Done,
 					Remainder:  owr.Remainder,
 					IsFinish:   owr.IsFinish,
+					OpDate:     owr.OpDate,
 					StepNumber: owr.StepNumber,
 				})
 				if owr.Value != nil {

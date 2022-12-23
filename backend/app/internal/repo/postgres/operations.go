@@ -51,9 +51,9 @@ func (r *OperationRepo) GetLast(ctx context.Context, positionId uuid.UUID) (oper
 }
 
 func (r *OperationRepo) GetWithReasons(ctx context.Context, positionId uuid.UUID) (operations []models.OperationWithReason, err error) {
-	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number, is_finish, %s.id as reason_id, value, %s.date
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number, is_finish, %s.date as op_date, %s.id as reason_id, value, %s.date
   		FROM %s INNER JOIN %s ON %s.operation_id=%s.id LEFT JOIN %s ON %s.id=%s.operation_id 
-		WHERE position_id=$1 ORDER BY step_number, %s.date`, OperationsTable, ReasonsTable, ReasonsTable,
+		WHERE position_id=$1 ORDER BY step_number, %s.date`, OperationsTable, OperationsTable, ReasonsTable, ReasonsTable,
 		OperationsTable, RootOperationTable, OperationsTable, RootOperationTable,
 		ReasonsTable, OperationsTable, ReasonsTable, ReasonsTable)
 

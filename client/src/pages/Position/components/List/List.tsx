@@ -27,6 +27,8 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 									color={isFinish ? 'green' : o.done ? 'red' : 'primary'}
 								>
 									Осталось: {o.remainder}
+									<br />
+									{o.date}
 								</Typography>
 								{o.remainder < count && (
 									<Rollback
@@ -53,6 +55,8 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 									color={isFinish ? 'green' : o.done ? 'red' : 'primary'}
 								>
 									Осталось: {o.remainder}
+									<br />
+									{o.date}
 								</Typography>
 								{o.remainder < count && (
 									<Rollback

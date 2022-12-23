@@ -12,7 +12,8 @@ type Order struct {
 	Id       uuid.UUID `db:"id" json:"id"`
 	Number   string    `db:"number" json:"number"`
 	Done     bool      `db:"done" json:"done"`
-	Date     string    `db:"date" json:"date"`
+	Date     string    `db:"date" json:"date,omitempty"`
+	Customer string    `db:"customer" json:"customer,omitempty"`
 	Deadline string    `db:"deadline" json:"deadline,omitempty"`
 	Progress float64   `db:"progress" json:"progress,omitempty"`
 }
@@ -44,6 +45,7 @@ type OrderDTO struct {
 	Done     bool      `json:"done"`
 	Date     string    `json:"date"`
 	Deadline string    `json:"deadline"`
+	Customer string    `json:"customer"`
 }
 
 type FinishOrder struct {

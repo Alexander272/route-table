@@ -1,25 +1,26 @@
 #root {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--main-bg)
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--main-bg);
 }
 
 :root {
-    --primary-color: #062e93;
-    --secondary-color: #eaeefc;
-    --main-bg: #f8f8f8;
-    --white: #fff;
-    --gray: rgba(0, 0, 0, 0.04);
-    --red: #cf1919;
-    --green: #57ff301c;
-    --pale-red: #f1ffd2ab;
+	--primary-color: #062e93;
+	--secondary-color: #eaeefc;
+	--main-bg: #f8f8f8;
+	--white: #fff;
+	--aliceblue: #f1fbff;
+	--gray: rgba(0, 0, 0, 0.04);
+	--red: #cf1919;
+	--green: #57ff301c;
+	--pale-red: #f1ffd2ab;
 }
 
 @font-face {
-    font-family: 'Lobster';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/Lobster.ttf") format("truetype");
+	font-family: 'Lobster';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('/fonts/Lobster.ttf') format('truetype');
 }

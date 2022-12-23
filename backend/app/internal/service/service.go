@@ -16,7 +16,8 @@ import (
 
 // индексы таблицы заказов
 var Template models.Template = models.Template{
-	Order:    18,
+	Order:    19,
+	Customer: 18,
 	Title:    3,
 	Position: 6,
 	Marking:  7,

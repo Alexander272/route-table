@@ -88,8 +88,10 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 					if err != nil {
 						return fmt.Errorf("failed to parse date of deadline. error: %w", err)
 					}
+
 					id, err := s.Create(ctx, models.OrderDTO{
 						Number:   parts[2],
+						Customer: row[Template.Customer],
 						Deadline: fmt.Sprintf("%d", deadline.Unix()),
 						Date:     fmt.Sprintf("%s %s", parts[4], parts[5]),
 					})
@@ -162,6 +164,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 			Number:   strings.TrimLeft(o[0].Number, "0"),
 			Done:     o[0].Done,
 			Date:     o[0].Date,
+			Customer: o[0].Customer,
 			Progress: math.Round(o[0].Progress * 100),
 		}},
 	})
@@ -183,6 +186,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 				Number:   strings.TrimLeft(o.Number, "0"),
 				Done:     o.Done,
 				Date:     o.Date,
+				Customer: o.Customer,
 				Progress: math.Round(o.Progress * 100),
 			})
 		} else {
@@ -205,6 +209,7 @@ func (s *OrderService) GetAll(ctx context.Context) (orders []models.GroupedOrder
 					Number:   strings.TrimLeft(o.Number, "0"),
 					Done:     o.Done,
 					Date:     o.Date,
+					Customer: o.Customer,
 					Progress: math.Round(o.Progress * 100),
 				}},
 			})

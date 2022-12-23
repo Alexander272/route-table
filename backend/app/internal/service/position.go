@@ -72,13 +72,16 @@ func (s *PositionService) CreateFew(ctx context.Context, orders map[string]uuid.
 			// выбираем из списка основных операций те, что подходят для нашей позиции
 			for _, r := range root {
 				if strings.Contains(r.Gasket, row[1]) {
-					opId := uuid.New()
-					operations = append(operations, models.OperationDTO{
-						Id:          opId,
-						PositionId:  id,
-						OperationId: r.Id,
-						Remainder:   count,
-					})
+					condition := r.Title != "08 Маркировка" || (r.Title == "08 Маркировка" && !strings.Contains(strings.ToUpper(row[Template.Marking]), "МАРКИРОВ"))
+					if condition {
+						opId := uuid.New()
+						operations = append(operations, models.OperationDTO{
+							Id:          opId,
+							PositionId:  id,
+							OperationId: r.Id,
+							Remainder:   count,
+						})
+					}
 				}
 			}
 		}

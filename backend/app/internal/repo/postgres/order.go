@@ -28,7 +28,7 @@ func (r *OrderRepo) Get(ctx context.Context, id uuid.UUID) (order models.OrderWi
 }
 
 func (r *OrderRepo) GetAll(ctx context.Context) (orders []models.Order, err error) {
-	query := fmt.Sprintf(`SELECT id, number, done, date, deadline,
+	query := fmt.Sprintf(`SELECT id, number, done, date, deadline, customer,
 		(SELECT count(DISTINCT position) FROM %s WHERE done=true AND order_id=%s.id)/
 		(SELECT count(DISTINCT position) FROM %s WHERE order_id=%s.id)::real as progress
 		FROM %s WHERE done=false ORDER BY deadline, number`, PositionsTable, OrdersTable, PositionsTable, OrdersTable, OrdersTable)
@@ -66,10 +66,10 @@ func (r *OrderRepo) Find(ctx context.Context, number string) (orders []models.Fi
 }
 
 func (r *OrderRepo) Create(ctx context.Context, order models.OrderDTO) (id uuid.UUID, err error) {
-	query := fmt.Sprintf("INSERT INTO %s (id, number, done, deadline, date) VALUES ($1, $2, $3, $4, $5) RETURNING id", OrdersTable)
+	query := fmt.Sprintf("INSERT INTO %s (id, number, done, deadline, customer, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", OrdersTable)
 	id = uuid.New()
 
-	_, err = r.db.Exec(query, id, order.Number, order.Done, order.Deadline, order.Date)
+	_, err = r.db.Exec(query, id, order.Number, order.Done, order.Deadline, order.Customer, order.Date)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}

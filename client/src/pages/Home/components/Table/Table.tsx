@@ -103,11 +103,11 @@ export const OrderTable: FC<Props> = () => {
 		setOpen(false)
 	}
 
-	const chooseBackgroundRow = (done: boolean, ring: string) => {
+	const chooseBackgroundRow = (idx: number, done: boolean, ring: string) => {
 		if (done) {
 			return 'var(--green)'
 		} else {
-			return 'var(--white)'
+			return idx % 2 === 0 ? 'var(--white)' : 'var(--aliceblue)'
 		}
 		// if (ring === "наружное") {
 		//     return "var(--pale-red)"
@@ -196,24 +196,32 @@ export const OrderTable: FC<Props> = () => {
 			</Stack>
 
 			<TableContainer sx={{ maxHeight: 650 }}>
-				<Table stickyHeader sx={{ backgroundColor: '#fff' }}>
+				<Table stickyHeader>
 					<TableHead>
 						<TableRow>
-							<TableCell>№</TableCell>
-							<TableCell>Наименование</TableCell>
-							<TableCell>Количество</TableCell>
-							<TableCell>Ограничительное кольцо</TableCell>
-							<TableCell>Срок выполнения</TableCell>
-							<TableCell>Последняя выполненная операция</TableCell>
-							<TableCell>Текущая операция</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>№</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>Наименование</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>Количество</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>
+								Ограничительное кольцо
+							</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>
+								Срок выполнения
+							</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>
+								Последняя выполненная операция
+							</TableCell>
+							<TableCell sx={{ backgroundColor: '#eaf0ff', fontWeight: 'bold' }}>
+								Текущая операция
+							</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{positions.map(row => (
+						{positions.map((row, idx) => (
 							<TableRow
 								key={row.id}
 								onClick={navigateToPositionHandler(row.id)}
-								sx={{ background: chooseBackgroundRow(row.done, row.ring) }}
+								sx={{ background: chooseBackgroundRow(idx, row.done, row.ring) }}
 							>
 								<TableCell>{row.position}</TableCell>
 								<TableCell>{row.title}</TableCell>

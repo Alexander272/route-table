@@ -6,5 +6,6 @@ type Template struct {
 	Position int
 	Marking  int
 	Count    int
+	Customer int
 	Deadline int
 }

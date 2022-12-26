@@ -76,7 +76,13 @@ func (r *OperationRepo) GetConnected(ctx context.Context, positionId, operationI
 }
 
 // Получение предыдущих операций
-func (r *OperationRepo) GetSkipped(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error) {
+func (r *OperationRepo) GetSkipped(ctx context.Context, positionId, operationId uuid.UUID, connected []uuid.UUID) (operations []models.Operation, err error) {
+	var list []string
+	for _, u := range connected {
+		list = append(list, fmt.Sprintf("'%s'", u))
+	}
+	con := strings.Join(list, ", ")
+
 	query := fmt.Sprintf(`
 		SELECT %s.id, remainder FROM %s 
 		INNER JOIN %s ON operation_id=%s.id
@@ -84,10 +90,11 @@ func (r *OperationRepo) GetSkipped(ctx context.Context, positionId, operationId 
 			SELECT step_number FROM %s 
 			INNER JOIN %s ON operation_id=%s.id
 			WHERE operations.id=$2
-		)
+		) AND %s.id not in (%s)
 	`, OperationsTable, OperationsTable,
 		RootOperationTable, RootOperationTable,
 		OperationsTable, RootOperationTable, RootOperationTable,
+		OperationsTable, con,
 	)
 
 	if err := r.db.Select(&operations, query, positionId, operationId); err != nil {

@@ -178,23 +178,18 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 	if err != nil {
 		return err
 	}
-	var skipped []models.Operation
-	if operation.Done {
-		skipped, err = s.repo.GetSkipped(ctx, positionId, operation.Id)
-		if err != nil {
-			return fmt.Errorf("failed to get skipped operations. error: %w", err)
-		}
-	}
 
 	connected = append(connected, models.Operation{
 		Id:        operation.Id,
 		Remainder: operation.Count,
 	})
 
+	var connectedIds []uuid.UUID
 	var operations []models.OperationDTO
 	var completed []models.CompletedOperation
 
 	for i, o := range connected {
+		connectedIds = append(connectedIds, o.Id)
 		operations = append(operations, models.OperationDTO{
 			Id:        o.Id,
 			Done:      operation.Done,
@@ -211,6 +206,15 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 			Count:       o.Remainder,
 		})
 	}
+
+	var skipped []models.Operation
+	if operation.Done {
+		skipped, err = s.repo.GetSkipped(ctx, positionId, operation.Id, connectedIds)
+		if err != nil {
+			return fmt.Errorf("failed to get skipped operations. error: %w", err)
+		}
+	}
+
 	for _, o := range skipped {
 		operations = append(operations, models.OperationDTO{
 			Id:        o.Id,

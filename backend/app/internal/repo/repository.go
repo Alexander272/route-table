@@ -51,7 +51,7 @@ type Operation interface {
 	GetLast(context.Context, uuid.UUID) (models.Operation, error)
 	GetWithReasons(context.Context, uuid.UUID) ([]models.OperationWithReason, error)
 	GetConnected(ctx context.Context, positionId, operationId uuid.UUID) ([]models.Operation, error)
-	GetSkipped(ctx context.Context, positionId, operationId uuid.UUID) (operations []models.Operation, err error)
+	GetSkipped(ctx context.Context, positionId, operationId uuid.UUID, connected []uuid.UUID) (operations []models.Operation, err error)
 	Create(context.Context, models.OperationDTO) (uuid.UUID, error)
 	CreateFew(context.Context, []models.OperationDTO) error
 	Update(context.Context, models.OperationDTO) error

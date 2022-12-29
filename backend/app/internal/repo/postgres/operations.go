@@ -31,7 +31,7 @@ func (r *OperationRepo) Get(ctx context.Context, positionId uuid.UUID, enabled p
 }
 
 func (r *OperationRepo) GetAll(ctx context.Context, positionId uuid.UUID) (operations []models.Operation, err error) {
-	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number FROM %s INNER JOIN %s ON operation_id=%s.id 
+	query := fmt.Sprintf(`SELECT %s.id, title, done, remainder, step_number, date FROM %s INNER JOIN %s ON operation_id=%s.id 
 		WHERE position_id=$1  ORDER BY step_number`, OperationsTable, OperationsTable, RootOperationTable, RootOperationTable)
 
 	if err := r.db.Select(&operations, query, positionId); err != nil {

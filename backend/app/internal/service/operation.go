@@ -178,6 +178,9 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 	if err != nil {
 		return err
 	}
+	for i := range connected {
+		connected[i].Remainder = operation.Count
+	}
 
 	connected = append(connected, models.Operation{
 		Id:        operation.Id,
@@ -198,12 +201,14 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 		if operation.Done {
 			operations[i].Date = time.Now().Format("02.01.2006 15:04")
 		}
+		completeId := uuid.New()
 		completed = append(completed, models.CompletedOperation{
-			Id:          o.Id,
+			Id:          completeId,
 			OperationId: o.Id,
 			GroupId:     groupId,
 			Remainder:   operation.Remainder,
 			Count:       o.Remainder,
+			Date:        time.Now().Unix(),
 		})
 	}
 
@@ -222,12 +227,14 @@ func (s *OperationService) Update(ctx context.Context, positionId, groupId uuid.
 			Remainder: operation.Remainder,
 			Date:      time.Now().Format("02.01.2006 15:04"),
 		})
+		completeId := uuid.New()
 		completed = append(completed, models.CompletedOperation{
-			Id:          o.Id,
+			Id:          completeId,
 			OperationId: o.Id,
 			GroupId:     groupId,
 			Remainder:   operation.Remainder,
 			Count:       o.Remainder,
+			Date:        time.Now().Unix(),
 		})
 	}
 
@@ -250,12 +257,22 @@ func (s *OperationService) UpdateCount(ctx context.Context, position models.Upda
 
 	var updatedOperations []models.OperationDTO
 	addRemainder := position.Count - operations[len(operations)-1].Remainder
+
 	for _, o := range operations {
+		newRemainder := o.Remainder + addRemainder
+		if newRemainder < 0 {
+			newRemainder = 0
+		}
+		newDate := *o.Date
+		if newRemainder != 0 {
+			newDate = ""
+		}
+
 		updatedOperations = append(updatedOperations, models.OperationDTO{
 			Id:        o.Id,
-			Done:      false,
-			Remainder: o.Remainder + addRemainder,
-			Date:      "",
+			Done:      newRemainder == 0,
+			Remainder: newRemainder,
+			Date:      newDate,
 		})
 	}
 

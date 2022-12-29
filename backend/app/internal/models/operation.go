@@ -9,6 +9,7 @@ type Operation struct {
 	Remainder  int       `db:"remainder" json:"remainder"`
 	StepNumber int       `db:"step_number" json:"step_number,omitempty"`
 	IsFinish   bool      `db:"is_finish" json:"isFinish"`
+	Date       *string   `db:"date" json:"-"`
 }
 
 type OperationWithReason struct {
@@ -48,4 +49,5 @@ type CompletedOperation struct {
 	GroupId     uuid.UUID `json:"groupId" db:"group_id"`
 	Remainder   int       `json:"remainder" db:"remainder"`
 	Count       int       `json:"count" db:"count"`
+	Date        int64     `db:"date"`
 }

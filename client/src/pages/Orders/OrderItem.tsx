@@ -52,12 +52,12 @@ export const OrderItem: FC<Props> = ({ order }) => {
 						borderBottom: '1px solid var(--primary-color)',
 					}}
 				>
-					<Stack spacing={0} onClick={selectOrder(o)} sx={{ cursor: 'pointer' }}>
+					<Stack spacing={0} onClick={selectOrder(o)} sx={{ cursor: 'pointer', flexBasis: '80%' }}>
 						<Typography variant='h6' color='primary' sx={{ fontWeight: 700 }}>
 							Заказ №{o.number}
 						</Typography>
 						{/* <Typography>От {o.date}</Typography> */}
-						<Typography>{o.customer}</Typography>
+						<Typography sx={{ wordBreak: 'break-word' }}>{o.customer}</Typography>
 					</Stack>
 
 					<Box sx={{ position: 'relative', display: 'inline-flex' }}>

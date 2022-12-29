@@ -224,6 +224,7 @@ func (s *PositionService) Action(ctx context.Context, position models.CompletePo
 	if position.IsFinish {
 		if position.Connected != uuid.Nil {
 			position.Operation.Id = uuid.Nil
+			position.Operation.Reason = ""
 			if err := s.operation.Update(ctx, position.Connected, groupId, position.Operation); err != nil {
 				return err
 			}

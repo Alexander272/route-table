@@ -21,7 +21,7 @@ func NewCompletedOperationRepo(db *sqlx.DB) *CompleteOperationRepo {
 func (r *CompleteOperationRepo) Get(ctx context.Context, operationId uuid.UUID) (operations []models.CompletedOperation, err error) {
 	query := fmt.Sprintf(`
 		SELECT id, operation_id, group_id, remainder, count FROM %s
-		WHERE group_id=(SELECT group_id FROM %s WHERE id=$1);
+		WHERE group_id=(SELECT group_id FROM %s WHERE operation_id=$1 ORDER BY date DESC LIMIT 1);
 	`, CompletedOperTable, CompletedOperTable)
 
 	if err := r.db.Select(&operations, query, operationId); err != nil {
@@ -31,9 +31,9 @@ func (r *CompleteOperationRepo) Get(ctx context.Context, operationId uuid.UUID) 
 }
 
 func (r *CompleteOperationRepo) Create(ctx context.Context, operation models.CompletedOperation) (id uuid.UUID, err error) {
-	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, group_id, remainder, count) VALUES ($1, $2, $3, $4, $5)", CompletedOperTable)
+	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, group_id, remainder, count, date) VALUES ($1, $2, $3, $4, $5, $6)", CompletedOperTable)
 
-	_, err = r.db.Exec(query, operation.Id, operation.Id, operation.GroupId, operation.Remainder, operation.Count)
+	_, err = r.db.Exec(query, operation.Id, operation.Id, operation.GroupId, operation.Remainder, operation.Count, operation.Date)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("failed to execute query. error: %w", err)
 	}
@@ -42,15 +42,15 @@ func (r *CompleteOperationRepo) Create(ctx context.Context, operation models.Com
 }
 
 func (r *CompleteOperationRepo) CreateFew(ctx context.Context, operations []models.CompletedOperation) error {
-	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, group_id, remainder, count) VALUES ", CompletedOperTable)
+	query := fmt.Sprintf("INSERT INTO %s (id, operation_id, group_id, remainder, count, date) VALUES ", CompletedOperTable)
 
 	args := make([]interface{}, 0)
 	values := make([]string, 0, len(operations))
 
-	c := 5
+	c := 6
 	for i, p := range operations {
-		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5))
-		args = append(args, p.Id, p.OperationId, p.GroupId, p.Remainder, p.Count)
+		values = append(values, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d)", i*c+1, i*c+2, i*c+3, i*c+4, i*c+5, i*c+6))
+		args = append(args, p.Id, p.OperationId, p.GroupId, p.Remainder, p.Count, p.Date)
 	}
 	query += strings.Join(values, ", ")
 

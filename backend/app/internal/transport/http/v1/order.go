@@ -74,7 +74,7 @@ func (h *Handler) getOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DataResponse{Data: orders, Count: len(orders)})
 }
 
-// Получение закозов в виде группы по срочности
+// Получение заказов в виде группы по срочности
 func (h *Handler) getGroup(c *gin.Context) {
 	orders, err := h.services.Order.GetGrouped(c)
 	if err != nil {
@@ -109,7 +109,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, response.DataResponse{Data: order})
 }
 
-// получение заказоа по номеру (лимит 5 штук)
+// получение заказов по номеру (лимит 5 штук)
 func (h *Handler) findOrders(c *gin.Context) {
 	number := c.Param("number")
 	if number == "" {

@@ -256,7 +256,7 @@ func (s *OrderService) GetWithPositions(ctx context.Context, id uuid.UUID, role 
 	}
 
 	var positions []models.PositionForOrder
-	if role != "master" {
+	if role != "master" && role != "manager" {
 		positions, err = s.position.GetForOrder(ctx, id, enabled)
 		if err != nil {
 			return models.OrderWithPositions{}, err

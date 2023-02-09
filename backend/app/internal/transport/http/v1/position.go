@@ -36,7 +36,7 @@ func (h *Handler) getPosition(c *gin.Context) {
 
 	var position interface{}
 
-	if role == "master" {
+	if role == "master" || role == "manager" {
 		position, err = h.services.Position.GetWithReasons(c, uuId)
 		if err != nil {
 			response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "failed to get operation")

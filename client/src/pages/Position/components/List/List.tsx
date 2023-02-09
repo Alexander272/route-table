@@ -1,5 +1,6 @@
 import { List, ListItem, Stack, Typography } from '@mui/material'
-import React, { FC } from 'react'
+import React, { FC, useContext } from 'react'
+import { AuthContext } from '../../../../context/AuthProvider'
 import { IOperation } from '../../../../types/operations'
 import { IPosition } from '../../../../types/positions'
 import { Rollback } from './Rollback'
@@ -12,6 +13,8 @@ type Props = {
 }
 
 export const OperList: FC<Props> = ({ position, operations, count, changeErrorHandler }) => {
+	const { user } = useContext(AuthContext)
+
 	const isFinish = operations[operations.length - 1].done
 
 	return (
@@ -30,13 +33,13 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 									<br />
 									{o.date}
 								</Typography>
-								{o.remainder < count && (
+								{o.remainder < count && user?.role !== 'manager' ? (
 									<Rollback
 										position={position}
 										operation={o}
 										changeErrorHandler={changeErrorHandler}
 									/>
-								)}
+								) : null}
 							</Stack>
 							<Stack sx={{ flexBasis: '35%' }}>
 								{o.reasons.map(r => (
@@ -58,13 +61,13 @@ export const OperList: FC<Props> = ({ position, operations, count, changeErrorHa
 									<br />
 									{o.date}
 								</Typography>
-								{o.remainder < count && (
+								{o.remainder < count && user?.role !== 'manager' ? (
 									<Rollback
 										position={position}
 										operation={o}
 										changeErrorHandler={changeErrorHandler}
 									/>
-								)}
+								) : null}
 							</Stack>
 						</>
 					)}

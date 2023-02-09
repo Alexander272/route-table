@@ -51,7 +51,7 @@ func (m *Middleware) AccessForMaster(c *gin.Context) {
 
 func (m *Middleware) AccessForDisplay(c *gin.Context) {
 	role, _ := c.Get(m.RoleCtx)
-	if role != "display" && role != "master" {
+	if role != "display" && role != "master" && role != "manager" {
 		response.NewErrorResponse(c, http.StatusForbidden, "role "+role.(string)+" access is denied", "access is denied")
 		return
 	}

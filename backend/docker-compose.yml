@@ -15,8 +15,8 @@ services:
         ports:
             - "5050:80"
             - "5051:443"
-    
-    postgres: 
+
+    postgres:
         image: postgres:13-alpine3.17
         container_name: dev-postgres
         restart: unless-stopped
@@ -26,4 +26,13 @@ services:
             - ./postgres:/var/lib/postgresql/data
         ports:
             - 5432:5432
-        
+
+    redis-commander:
+        container_name: redis-commander
+        hostname: redis-commander
+        image: ghcr.io/joeferner/redis-commander:latest
+        restart: unless-stopped
+        environment:
+            - REDIS_HOSTS=prod_db:pro.sealur.ru:6379:0:jhg67Rfaj@loi&1hgf77,local_db:192.168.5.159:6379:0:jhg67Rfaj@loi&1hgf77
+        ports:
+            - "8081:8081"

@@ -87,7 +87,7 @@ func (h *Handler) deleteRootOperation(c *gin.Context) {
 
 	dto := models.RootOperationDTO{Id: Id}
 
-	if err := h.services.RootOperation.Update(c, dto); err != nil {
+	if err := h.services.RootOperation.Delete(c, dto); err != nil {
 		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}

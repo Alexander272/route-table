@@ -51,7 +51,7 @@ func (h *Handler) signOut(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(h.cookieName, "", 0, "/", c.Request.Host, h.auth.Secure, true)
+	c.SetCookie(h.cookieName, "", -1, "/", c.Request.Host, h.auth.Secure, true)
 	c.JSON(http.StatusNoContent, response.IdResponse{Message: "Sign-out completed successfully"})
 }
 
@@ -64,13 +64,20 @@ func (h *Handler) refresh(c *gin.Context) {
 
 	user, err := h.services.Session.TokenParse(token)
 	if err != nil {
+		c.SetCookie(h.cookieName, "", -1, "/", c.Request.Host, h.auth.Secure, true)
 		response.NewErrorResponse(c, http.StatusForbidden, err.Error(), "user is not authorized")
 		return
 	}
 
 	_, err = h.services.CheckSession(c, token)
 	if err != nil {
+		c.SetCookie(h.cookieName, "", -1, "/", c.Request.Host, h.auth.Secure, true)
 		response.NewErrorResponse(c, http.StatusForbidden, err.Error(), "user is not authorized")
+		return
+	}
+
+	if err := h.services.Session.SingOut(c, token); err != nil {
+		response.NewErrorResponse(c, http.StatusInternalServerError, err.Error(), "something went wrong")
 		return
 	}
 

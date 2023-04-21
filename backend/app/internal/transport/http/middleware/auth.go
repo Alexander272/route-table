@@ -16,12 +16,14 @@ func (m *Middleware) UserIdentity(c *gin.Context) {
 
 	user, err := m.services.Session.TokenParse(token)
 	if err != nil {
+		c.SetCookie(m.CookieName, "", -1, "/", c.Request.Host, m.auth.Secure, true)
 		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
 		return
 	}
 
 	isRefresh, err := m.services.Session.CheckSession(c, token)
 	if err != nil {
+		c.SetCookie(m.CookieName, "", -1, "/", c.Request.Host, m.auth.Secure, true)
 		response.NewErrorResponse(c, http.StatusUnauthorized, err.Error(), "user is not authorized")
 		return
 	}

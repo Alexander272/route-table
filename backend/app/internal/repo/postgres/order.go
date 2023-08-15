@@ -108,6 +108,22 @@ func (r *OrderRepo) DeleteOld(ctx context.Context, term time.Time) error {
 	return nil
 }
 
+func (r *OrderRepo) DeleteEmpty(ctx context.Context) error {
+	query := fmt.Sprintf(`DELETE FROM %s
+		WHERE id IN (
+			SELECT %s.id FROM %s WHERE (
+				SELECT count(id) FROM %s WHERE order_id=%s.id
+			)=0
+		)`,
+		OrdersTable, OrdersTable, OrdersTable, PositionsTable, OrdersTable,
+	)
+
+	if _, err := r.db.Exec(query); err != nil {
+		return fmt.Errorf("failed to execute query. error: %w", err)
+	}
+	return nil
+}
+
 func (r *OrderRepo) Delete(ctx context.Context, order models.OrderDTO) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", OrdersTable)
 

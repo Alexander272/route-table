@@ -115,6 +115,11 @@ func (s *OrderService) Parse(ctx context.Context, file *excelize.File) error {
 	if err := s.position.CreateFew(ctx, orders, positions); err != nil {
 		return err
 	}
+
+	if err := s.repo.DeleteEmpty(ctx); err != nil {
+		return fmt.Errorf("failed to delete empty order. error: %w", err)
+	}
+
 	return nil
 }
 

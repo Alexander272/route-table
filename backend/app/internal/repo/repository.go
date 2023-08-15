@@ -28,6 +28,7 @@ type Order interface {
 	Update(context.Context, models.OrderDTO) error
 	Complete(context.Context, models.OrderDTO) error
 	DeleteOld(context.Context, time.Time) error
+	DeleteEmpty(context.Context) error
 	Delete(context.Context, models.OrderDTO) error
 
 	GetForAnalytics(context.Context) ([]models.Analytics, error)
